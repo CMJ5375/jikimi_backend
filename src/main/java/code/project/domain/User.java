@@ -1,13 +1,16 @@
 package code.project.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
+@Table(name = "`User`") // 예약어 충돌 방지
 @Getter
 @Setter
-@Table(name = "User")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class User {
 
     @Id
@@ -20,12 +23,22 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
+    @Column(nullable = false, length = 50)
+    private String name;
+
+    @Column(length = 255)
+    private String address;
+
+    private Integer age;
+
     @Column(nullable = false, length = 100)
     private String email;
 
+    // 'LOCAL', 'KAKAO', 'GOOGLE' 중 하나
+    @Column(nullable = false, length = 10)
+    private String socialType = "LOCAL";
+
+    //권한 (admin은 수동으로 직접 바꿔줄 예정)
     @Column(nullable = false, length = 10)
     private String role = "USER";
-
-    @Column(nullable = false, length = 20)
-    private String socialType = "LOCAL";
 }

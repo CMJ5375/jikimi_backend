@@ -1,0 +1,53 @@
+package code.project.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "Notice")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder @ToString(exclude = "user")
+public class Notice {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long noticeId;
+
+    // 작성자(ADMIN이어야 함 — 서비스 레이어에서 체크)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(nullable = false, length = 200)
+    private String title;
+
+    @Lob
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Column(length = 255)
+    private String fileUrl;
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer viewCount;
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer likeCount;
+
+    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private Boolean isDeleted;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (viewCount == null) viewCount = 0;
+        if (likeCount == null) likeCount = 0;
+        if (isDeleted == null) isDeleted = false;
+    }
+
+}
