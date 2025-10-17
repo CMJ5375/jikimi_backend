@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @Builder
 @ToString
 public class Facility {
-
+    //커밋 테스트용
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long facilityId; // PK
