@@ -36,11 +36,11 @@ public class Facility {
     @Column(nullable = false, length = 255)
     private String address; // 주소
 
-    @Column(precision = 10, scale = 7)
-    private BigDecimal latitude; // 위도
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal latitude;
 
-    @Column(precision = 10, scale = 7)
-    private BigDecimal longitude; // 경도
+    @Column(nullable = false, precision = 10, scale = 7)
+    private BigDecimal longitude;
 
     @Column(length = 20)
     private String regionCode; // 지역코드

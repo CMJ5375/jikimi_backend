@@ -17,7 +17,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50 ,unique = true)
     private String username;
 
     @Column(nullable = false, length = 255)
@@ -31,7 +31,7 @@ public class User {
 
     private Integer age;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, unique = true)
     private String email;
 
     // 'LOCAL', 'KAKAO', 'GOOGLE' 중 하나
