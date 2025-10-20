@@ -1,26 +1,18 @@
 package code.project.domain;
 
-import jakarta.persistence.*;
-import lombok.*;
+public enum BoardCategory {
+    HOSPITAL_INFO("병원정보"),
+    PHARMACY_INFO("약국정보"),
+    QUESTION("질문해요"),
+    FREE("자유글");
 
-@Entity
-@Table(name = "Board_Category")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
-@Builder @ToString(exclude = "board")
-public class BoardCategory {
+    private final String displayName;
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long categoryId;
+    BoardCategory(String displayName) {
+        this.displayName = displayName;
+    }
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
-
-    @Column(nullable = false, length = 50)
-    private String name;
-
-    @Column(length = 200)
-    private String description;
-
+    public String getDisplayName() {
+        return displayName;
+    }
 }
