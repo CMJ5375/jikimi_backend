@@ -3,7 +3,6 @@ package code.project.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -15,18 +14,17 @@ import java.util.stream.Collectors;
 @ToString
 public class UserDTO extends User {
 
-    private String username, password, name, address, email, socialType;
+    private String username, password, name, address, email;
 
     private Integer age;
 
     private List<String> roleNames = new ArrayList<>();
 
-    public UserDTO(String username, String password, String name, String address, Integer age, String email, String socialType, List<String> roleNames) {
+    public UserDTO(String username, String password, String name, String address, Integer age, String email, List<String> roleNames) {
         super(
                 username,
                 password,
-                roleNames.stream().map(str -> new SimpleGrantedAuthority("ROLE_" + str)).collect(Collectors.toList())
-        );
+                roleNames.stream().map(str -> new SimpleGrantedAuthority("ROLE_" + str)).collect(Collectors.toList()));
 
         this.username = username;
         this.password = password;
@@ -34,7 +32,6 @@ public class UserDTO extends User {
         this.address = address;
         this.age = age;
         this.email = email;
-        this.socialType = socialType;
     }
 
     public Map<String, Object> getClaims() {
@@ -46,7 +43,6 @@ public class UserDTO extends User {
         dataMap.put("address", address);
         dataMap.put("age", age);
         dataMap.put("email", email);
-        dataMap.put("socialType", socialType);
 
         return dataMap;
     }

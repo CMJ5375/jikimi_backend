@@ -36,8 +36,8 @@ class BoardAllTest {
                 .name("글쓴이")
                 .email("writer@example.com")
                 .socialType("LOCAL")
-                .role("USER")
                 .build());
+        user.addRole(MemberRole.USER);
 
         // 게시판 & 카테고리
         Board board = boardRepository.save(Board.builder()
@@ -83,8 +83,8 @@ class BoardAllTest {
                 .name("관리자")
                 .email("admin@example.com")
                 .socialType("LOCAL")
-                .role("ADMIN")
                 .build());
+        admin.addRole(MemberRole.ADMIN);
 
         Notice notice = noticeRepository.save(Notice.builder()
                 .user(admin) // 실제 앱에서는 Service에서 role='ADMIN' 검증
@@ -93,6 +93,6 @@ class BoardAllTest {
                 .build());
 
         assertThat(notice.getNoticeId()).isNotNull();
-        assertThat(notice.getUser().getRole()).isEqualTo("ADMIN");
+        assertThat(notice.getUser().getMemberRoleList()).isEqualTo("ADMIN");
     }
 }
