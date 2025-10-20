@@ -34,8 +34,8 @@ class UserFavoriteRepositoryTest {
                 .name("즐겨찾기유저")
                 .email("fav@example.com")
                 .socialType("LOCAL")
-                .role("USER")
                 .build());
+        user.addRole(MemberRole.USER);
 
         // 기관
         Facility f = facilityRepository.save(Facility.builder()
