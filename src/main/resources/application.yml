@@ -12,3 +12,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  org:
+    springframework:
+      security:
+        web: trace
