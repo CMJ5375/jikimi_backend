@@ -36,18 +36,10 @@ public class Notice {
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer likeCount;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private Boolean isDeleted;
-
     @PrePersist
     void onCreate() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
         if (viewCount == null) viewCount = 0;
         if (likeCount == null) likeCount = 0;
-        if (isDeleted == null) isDeleted = false;
     }
 
 }
