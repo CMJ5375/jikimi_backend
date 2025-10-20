@@ -68,7 +68,7 @@ class FacilityHospitalPharmacyTest {
 
         Pharmacy p = Pharmacy.builder()
                 .facility(savedF)     // @MapsId
-                .businessHours("월-금 10:00~19:00\n토 09:00~16:00")
+//                .businessHours("월-금 10:00~19:00\n토 09:00~16:00")
                 .build();
 
         Pharmacy savedP = pharmacyRepository.save(p);

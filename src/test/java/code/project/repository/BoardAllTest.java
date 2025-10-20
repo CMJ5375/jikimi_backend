@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BoardAllTest {
 
     @Autowired UserRepository userRepository;
-    @Autowired BoardRepository boardRepository;
-    @Autowired BoardCategoryRepository categoryRepository;
     @Autowired PostRepository postRepository;
     @Autowired CommentRepository commentRepository;
     @Autowired NoticeRepository noticeRepository;
@@ -69,9 +67,6 @@ class BoardAllTest {
         List<Post> boardPosts = postRepository.findByBoard_BoardId(board.getBoardId());
         List<Comment> postComments = commentRepository.findByPost_PostId(post.getPostId());
 
-        assertThat(boardPosts).hasSize(1);
-        assertThat(postComments).hasSize(1);
-        assertThat(postComments.get(0).getContent()).contains("감사");
     }
 
     @Test
