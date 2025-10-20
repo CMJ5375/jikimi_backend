@@ -1,5 +1,6 @@
 package code.project.repository;
 
+import code.project.domain.BoardCategory;
 import code.project.domain.Post;
 import code.project.repository.search.PostSearch;
 import code.project.service.PostService;
