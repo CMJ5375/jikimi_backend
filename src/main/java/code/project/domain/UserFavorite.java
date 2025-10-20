@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "User_Favorites")
+@Table(name = "User_Favorite")
 @Getter
 @Setter
 @NoArgsConstructor

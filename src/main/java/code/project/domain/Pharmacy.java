@@ -24,7 +24,6 @@ public class Pharmacy {
 
 
     // TEXT: RPA로 긁어온 영업정보를 그대로 저장
-    @Lob // 대용량 저장용 어노테이션
-    @Column(columnDefinition = "TEXT")
-    private String businessHours; //영업 정보
+    @Column(nullable = false)
+    private boolean hasEmergency; //영업 정보 yes 아니면 no니까 불린형
 }
