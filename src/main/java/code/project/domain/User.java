@@ -3,6 +3,9 @@ package code.project.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "`User`") // 예약어 충돌 방지
 @Getter
@@ -10,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString
+@ToString(exclude = "memberRoleList")
 public class User {
 
     @Id
@@ -41,4 +44,20 @@ public class User {
     //권한 (admin은 수동으로 직접 바꿔줄 예정)
     @Column(nullable = false, length = 10)
     private String role = "USER";
+
+
+    //memberRoleList가 실제로 사용될 때 데이터를 로드
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<MemberRole> memberRoleList = new ArrayList<>();
+
+    //권한부여
+    public void addRole(MemberRole memberRole) {
+        memberRoleList.add(memberRole);
+    }
+
+    //권한삭제
+    public void clearRole(){
+        memberRoleList.clear();
+    }
 }
