@@ -17,9 +17,15 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private BoardCategory category;
+//    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+//    @JoinColumn(name = "board_id", nullable = false)
+//    private Board board;
+//
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "category_id") // NULL 허용
+//    private BoardCategory category;
+
+//    보드 이넘타입으로 바꿈
 
     //작성자
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
