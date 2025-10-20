@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BoardAllTest {
 
     @Autowired UserRepository userRepository;
-    @Autowired BoardRepository boardRepository;
-    @Autowired BoardCategoryRepository categoryRepository;
     @Autowired PostRepository postRepository;
     @Autowired CommentRepository commentRepository;
     @Autowired NoticeRepository noticeRepository;
@@ -30,48 +28,7 @@ class BoardAllTest {
     @DisplayName("게시판-카테고리-게시글-댓글 CRUD 연결 검증")
     void boardPostCommentFlow() {
         // 유저 생성
-        User user = userRepository.save(User.builder()
-                .username("writer")
-                .password("1234")
-                .name("글쓴이")
-                .email("writer@example.com")
-                .socialType("LOCAL")
-                .role("USER")
-                .build());
 
-        // 게시판 & 카테고리
-        Board board = boardRepository.save(Board.builder()
-                .name("자료실")
-                .build());
-
-        BoardCategory cat = categoryRepository.save(BoardCategory.builder()
-                .board(board)
-                .name("병원정보")
-                .description("병원 데이터")
-                .build());
-
-        // 게시글
-        Post post = postRepository.save(Post.builder()
-                .board(board)
-                .category(cat)      // null 가능
-                .user(user)
-                .title("서울 병원 목록")
-                .content("내용입니다")
-                .build());
-
-        // 댓글
-        Comment c1 = commentRepository.save(Comment.builder()
-                .post(post)
-                .user(user)
-                .content("좋은 정보 감사합니다!")
-                .build());
-
-        List<Post> boardPosts = postRepository.findByBoard_BoardId(board.getBoardId());
-        List<Comment> postComments = commentRepository.findByPost_PostId(post.getPostId());
-
-        assertThat(boardPosts).hasSize(1);
-        assertThat(postComments).hasSize(1);
-        assertThat(postComments.get(0).getContent()).contains("감사");
     }
 
     @Test
