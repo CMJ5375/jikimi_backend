@@ -16,6 +16,7 @@ public class PostController {
     private final PostService postService;
 
     // 목록 (페이징)
+    @GetMapping("/list")
     public PageResponseDTO<PostDTO> list(PageRequestDTO pageRequestDTO) {
         return postService.getList(pageRequestDTO);
     }
@@ -27,6 +28,7 @@ public class PostController {
     }
 
     // 등록
+    @PostMapping("/add")
     public Long register(@RequestBody PostDTO dto) {
         return postService.register(dto);
     }
