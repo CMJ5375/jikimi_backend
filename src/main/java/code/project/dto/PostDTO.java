@@ -1,5 +1,6 @@
 package code.project.dto;
 
+import code.project.domain.BoardCategory;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class PostDTO {
         private Long postId;
+        private BoardCategory boardCategory;
         private String title;
         private String content;
         private String fileUrl;
@@ -20,5 +22,5 @@ public class PostDTO {
 
         // 연관 객체는 ID나 이름만 노출
         private Long userId;
-        private String userName; //＊
+        //private String userName; //＊
 }
