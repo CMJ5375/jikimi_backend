@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "memberRoleList")
+@ToString
 public class User {
 
     @Id
@@ -41,18 +41,15 @@ public class User {
     @Column(nullable = false, length = 10)
     private String socialType = "LOCAL";
 
-    //권한 (admin은 수동으로 직접 바꿔줄 예정)
-    @Column(nullable = false, length = 10)
-    private String role = "USER";
 
-
+    //등급 권한 배열형으로 수정
     //memberRoleList가 실제로 사용될 때 데이터를 로드
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
     private List<MemberRole> memberRoleList = new ArrayList<>();
 
     //권한부여
-    public void addRole(MemberRole memberRole) {
+    public void addRole(MemberRole memberRole){
         memberRoleList.add(memberRole);
     }
 

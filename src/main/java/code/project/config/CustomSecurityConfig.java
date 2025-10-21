@@ -1,6 +1,9 @@
 package code.project.config;
 
+import code.project.security.filter.JWTCheckFilter;
+import code.project.security.handler.APILoginFailHandler;
 import code.project.security.handler.APILoginSuccessHandler;
+import code.project.security.handler.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -36,9 +40,16 @@ public class CustomSecurityConfig {
         http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
 
         http.formLogin(config -> {
-            config.loginPage("/api/user/login");
+            config.loginPage("/project/user/login");
             config.successHandler(new APILoginSuccessHandler());
+            config.failureHandler(new APILoginFailHandler());
         });
+
+        http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        //유효시간이 지나지 않았지만 권한이 없는 사용자가 가진 토큰을 사용하는 경우
+        http.exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler()));
+
 
         return http.build();
     }
