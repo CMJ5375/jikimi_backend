@@ -32,8 +32,6 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath password = createString("password");
 
-    public final StringPath role = createString("role");
-
     public final StringPath socialType = createString("socialType");
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);

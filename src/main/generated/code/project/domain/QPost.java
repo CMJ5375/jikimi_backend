@@ -22,9 +22,7 @@ public class QPost extends EntityPathBase<Post> {
 
     public static final QPost post = new QPost("post");
 
-    public final QBoard board;
-
-    public final QBoardCategory category;
+    public final EnumPath<BoardCategory> boardCategory = createEnum("boardCategory", BoardCategory.class);
 
     public final StringPath content = createString("content");
 
@@ -60,8 +58,6 @@ public class QPost extends EntityPathBase<Post> {
 
     public QPost(Class<? extends Post> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.board = inits.isInitialized("board") ? new QBoard(forProperty("board")) : null;
-        this.category = inits.isInitialized("category") ? new QBoardCategory(forProperty("category"), inits.get("category")) : null;
         this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
     }
 
