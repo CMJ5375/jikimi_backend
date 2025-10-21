@@ -45,6 +45,12 @@ public class CustomSecurityConfig {
             config.failureHandler(new APILoginFailHandler());
         });
 
+        // 잠시 추가. 개발 중이니까 권한 전부 해제
+        http.authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+        );
+
+        //JWT 필터는 인증이 필요한 요청만 검사하도록 유지
         http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 
         //유효시간이 지나지 않았지만 권한이 없는 사용자가 가진 토큰을 사용하는 경우

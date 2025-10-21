@@ -24,7 +24,8 @@ public class JWTCheckFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        if(path.startsWith("/project/user/")) {
+        // 로그인, 회원가입, 그리고 병원/약국 정보 API는 필터 건너뛰기
+        if(path.startsWith("/project/user/") || path.startsWith("/api/facilities")) {
             return true;
         }
 
