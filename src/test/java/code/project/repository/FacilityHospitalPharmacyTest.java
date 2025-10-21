@@ -1,6 +1,7 @@
 package code.project.repository;
 
 import code.project.domain.Facility;
+import code.project.domain.FacilityType;
 import code.project.domain.Hospital;
 import code.project.domain.Pharmacy;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +31,7 @@ class FacilityHospitalPharmacyTest {
     void hospitalMapsId() {
         Facility f = Facility.builder()
                 .name("성남중앙병원")
-                .type("HOSPITAL")
+                .type(FacilityType.valueOf("HOSPITAL"))
                 .phone("02-123-4567")
                 .address("성남시 어쩌구 저쩌구")
                 .latitude(new BigDecimal("37.5665350"))
@@ -58,7 +59,7 @@ class FacilityHospitalPharmacyTest {
     void pharmacyMapsId() {
         Facility f = Facility.builder()
                 .name("한빛약국")
-                .type("PHARMACY")
+                .type(FacilityType.valueOf("PHARMACY"))
                 .address("성남시 어쩌구 저쩌구")
                 .latitude(new BigDecimal("37.55"))
                 .longitude(new BigDecimal("126.97"))

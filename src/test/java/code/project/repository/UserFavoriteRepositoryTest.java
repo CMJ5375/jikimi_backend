@@ -40,7 +40,7 @@ class UserFavoriteRepositoryTest {
         // 기관
         Facility f = facilityRepository.save(Facility.builder()
                 .name("행복병원")
-                .type("HOSPITAL")
+                .type(FacilityType.valueOf("HOSPITAL"))
                 .address("서울시 1-1")
                 .latitude(new BigDecimal("37.55"))
                 .longitude(new BigDecimal("126.98"))
