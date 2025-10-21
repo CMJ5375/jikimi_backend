@@ -26,6 +26,8 @@ public class Post {
 //    private BoardCategory category;
 
 //    보드 이넘타입으로 바꿈
+    @Enumerated(EnumType.STRING)
+    private BoardCategory boardCategory;
 
     //작성자
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
