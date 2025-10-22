@@ -32,7 +32,7 @@ public class JPost {
     //작성자
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private JUser JUser;
+    private JUser user;
 
     //제목
     @Column(nullable = false, length = 200)

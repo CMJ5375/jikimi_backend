@@ -28,9 +28,9 @@ public class QJComment extends EntityPathBase<JComment> {
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
-    public final QJPost JPost;
+    public final QJPost post;
 
-    public final QJUser JUser;
+    public final QJUser user;
 
     public QJComment(String variable) {
         this(JComment.class, forVariable(variable), INITS);
@@ -50,8 +50,8 @@ public class QJComment extends EntityPathBase<JComment> {
 
     public QJComment(Class<? extends JComment> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.JPost = inits.isInitialized("JPost") ? new QJPost(forProperty("JPost"), inits.get("JPost")) : null;
-        this.JUser = inits.isInitialized("JUser") ? new QJUser(forProperty("JUser")) : null;
+        this.post = inits.isInitialized("post") ? new QJPost(forProperty("post"), inits.get("post")) : null;
+        this.user = inits.isInitialized("user") ? new QJUser(forProperty("user")) : null;
     }
 
 }

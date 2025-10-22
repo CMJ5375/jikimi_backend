@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 @SpringBootTest
 @Slf4j
-class JJPostRepositoryTest {
+class JPostRepositoryTest {
 
     @Autowired
     JPostRepository JPostRepository;
@@ -25,31 +25,31 @@ class JJPostRepositoryTest {
     private JPostService JPostService;
 
     @Test
-    void 게시글등록(){
-        JUser JUser = JUserRepository.findById(1L).orElseThrow();
-        JPost JPost = JPost.builder()
+    void 게시글등록() {
+        JUser user = JUserRepository.findById(1L).orElseThrow();
+        JPost post = JPost.builder()
                 .boardCategory(BoardCategory.FREE)
-                .JUser(JUser)
+                .user(user)
                 .title("복강경 수술 후기")
                 .content("너무 아팠어요 다신 경험하고 싶지 않아요")
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        JPostRepository.save(JPost);
+        JPostRepository.save(post);
     }
 
     @Test
-    void 게시글등록2(){
-        JUser JUser = JUserRepository.findById(1L).orElseThrow();
-        JPost JPost = JPost.builder()
+    void 게시글등록2() {
+        JUser user = JUserRepository.findById(1L).orElseThrow();
+        JPost post = JPost.builder()
                 .boardCategory(BoardCategory.FREE)
-                .JUser(JUser)
+                .user(user)
                 .title("복강경 수술 후기1")
                 .content("너무 아팠어요 다신 경험하고 싶지 않아요1")
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        JPostRepository.save(JPost);
+        JPostRepository.save(post);
     }
 
     @Test

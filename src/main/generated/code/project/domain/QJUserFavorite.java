@@ -26,7 +26,7 @@ public class QJUserFavorite extends EntityPathBase<JUserFavorite> {
 
     public final QJUserFavoriteId id;
 
-    public final QJUser JUser;
+    public final QJUser user;
 
     public QJUserFavorite(String variable) {
         this(JUserFavorite.class, forVariable(variable), INITS);
@@ -48,7 +48,7 @@ public class QJUserFavorite extends EntityPathBase<JUserFavorite> {
         super(type, metadata, inits);
         this.facility = inits.isInitialized("facility") ? new QFacility(forProperty("facility")) : null;
         this.id = inits.isInitialized("id") ? new QJUserFavoriteId(forProperty("id")) : null;
-        this.JUser = inits.isInitialized("JUser") ? new QJUser(forProperty("JUser")) : null;
+        this.user = inits.isInitialized("user") ? new QJUser(forProperty("user")) : null;
     }
 
 }
