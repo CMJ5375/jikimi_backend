@@ -1,56 +1,54 @@
 package code.project.domain;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
-@Table(
-        name = "facility",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"name", "address"})
-        }
-)
+@Table(name = "facility")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "departments")
 public class Facility {
-    //커밋 테스트용
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long facilityId; // PK
+    @Column(name = "facility_id")
+    private Long facilityId;
 
-    @Column(nullable = false, length = 100)
-    private String name; // 기관명
+    // 기관 이름
+    @Column(nullable = false, length = 255)
+    private String name;
 
+    // 병원 or 약국
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private FacilityType type; // 'HOSPITAL' 또는 'PHARMACY'
+    private FacilityType type;
 
+    // 대표 전화
     @Column(length = 20)
-    private String phone; // 전화번호
+    private String phone;
 
+    // 주소
     @Column(nullable = false, length = 255)
-    private String address; // 주소
+    private String address;
 
+    // 위도 (DECIMAL(10,7))
     @Column(nullable = false, precision = 10, scale = 7)
-    private BigDecimal latitude; // 위도
+    private BigDecimal latitude;
 
+    // 경도 (DECIMAL(10,7))
     @Column(nullable = false, precision = 10, scale = 7)
-    private BigDecimal longitude; // 경도
+    private BigDecimal longitude;
 
+    //지역 코드
     @Column(length = 20)
-    private String regionCode; // 지역코드
+    private String regionCode;
 
+    // 기관 구분
     @Column(length = 50)
-    private String orgType; // 의료기관
-
-    @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @JsonManagedReference
-    private List<FacilityDepartment> departments; // 진료과목
+    private String orgType;
 }

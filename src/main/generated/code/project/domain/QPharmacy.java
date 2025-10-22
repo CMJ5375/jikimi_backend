@@ -22,11 +22,13 @@ public class QPharmacy extends EntityPathBase<Pharmacy> {
 
     public static final QPharmacy pharmacy = new QPharmacy("pharmacy");
 
+    public final StringPath businessHour = createString("businessHour");
+
     public final QFacility facility;
 
-    public final BooleanPath hasEmergency = createBoolean("hasEmergency");
-
     public final NumberPath<Long> pharmacyId = createNumber("pharmacyId", Long.class);
+
+    public final StringPath pharmacyName = createString("pharmacyName");
 
     public QPharmacy(String variable) {
         this(Pharmacy.class, forVariable(variable), INITS);

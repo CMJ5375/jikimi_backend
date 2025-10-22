@@ -3,31 +3,46 @@ package code.project.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
-@Table(name = "Hospital")
+@Table(name = "hospital")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "facility")
 public class Hospital {
 
     @Id
-    private Long hospitalId;// PK = FK(Facility.facilityId) //병원 ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long hospitalId;
 
-    // Facility와 1:1, PK 공유
-    @OneToOne(optional = false)
+    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
-    @JoinColumn(name = "hospital_id")// FK 컬럼명 = hospital_id
+    @JoinColumn(name = "facility_id", nullable = false)
     private Facility facility;
 
-    @Column(length = 100)
-    private String department;// 진료과목
+    // 병원 이름
+    @Column(nullable = false, length = 255)
+    private String hospitalName;
 
-    @Column(length = 50)
-    private String institutionType;// 의료기관
+    // 진료 시간
+    @Column(length = 255)
+    private String businessHour;
 
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
-    private boolean hasEmergency;// 응급실 여부 (기본 0=false)
+    // 응급실 유무
+    @Column(nullable = false)
+    private boolean hasEmergency = false;
+
+    // 관계 설정
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HospitalDepartment> departments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HospitalBusinessHour> businessHours = new ArrayList<>();
+
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HospitalInstitution> institutions = new ArrayList<>();
 }

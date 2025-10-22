@@ -4,46 +4,34 @@ import code.project.domain.Facility;
 import code.project.domain.FacilityType;
 import code.project.service.FacilityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api/facilities")
-@CrossOrigin(origins = "*")
+@RequestMapping("/project/facility")
 @RequiredArgsConstructor
 public class FacilityController {
 
     private final FacilityService facilityService;
 
-    @GetMapping
-    public ResponseEntity<?> getFacilities(
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String orgType,
-            @RequestParam(required = false) String deptName
+    // /project/facility/list
+    // 병원 or 약국 전체 목록 조회 (type 기반, 페이징)
+    @GetMapping("/list")
+    public ResponseEntity<Page<Facility>> getFacilities(
+            @RequestParam FacilityType type,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        try {
-            // type이 없으면 전체 조회
-            if (type == null || type.isBlank()) {
-                return ResponseEntity.ok(facilityService.getAllFacilities());
-            }
-
-            FacilityType facilityType = FacilityType.valueOf(type.toUpperCase());
-            List<Facility> result = facilityService.searchFacilities(facilityType, name, orgType, deptName);
-
-            return ResponseEntity.ok(result);
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
-        }
+        Page<Facility> facilities = facilityService.getFacilities(type, keyword, page, size);
+        return ResponseEntity.ok(facilities);
     }
 
+    // /project/facility/{id}
+    // 단일 시설 상세 조회
     @GetMapping("/{id}")
-    public Facility getFacility(@PathVariable Long id) {
-        return facilityService.getFacilityById(id)
-                .orElseThrow(() -> new RuntimeException("Facility not found with id " + id));
+    public ResponseEntity<Facility> getFacilityDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(facilityService.getFacility(id));
     }
 }

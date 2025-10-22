@@ -4,26 +4,27 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "Pharmacy")
+@Table(name = "pharmacy")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "facility")
 public class Pharmacy {
 
     @Id
-    private Long pharmacyId;// PK = FK(Facility.facilityId) 기관 ID
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long pharmacyId;
 
-    // Facility와 1:1, PK 공유
-    @OneToOne(optional = false)
-    @MapsId
-    @JoinColumn(name = "pharmacy_id") //FK 컬럼명 = pharmacy_id
-    private Facility facility; //기관명
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "facility_id", nullable = false)
+    private Facility facility;
 
+    // 약국 이름
+    @Column(nullable = false, length = 255)
+    private String pharmacyName;
 
-    // TEXT: RPA로 긁어온 영업정보를 그대로 저장
-    @Column(nullable = false)
-    private boolean hasEmergency; //영업 정보 yes 아니면 no니까 불린형
+    // 영업 시간
+    @Column(length = 255)
+    private String businessHour;
 }

@@ -22,7 +22,11 @@ public class QHospital extends EntityPathBase<Hospital> {
 
     public static final QHospital hospital = new QHospital("hospital");
 
-    public final StringPath department = createString("department");
+    public final StringPath businessHour = createString("businessHour");
+
+    public final ListPath<HospitalBusinessHour, QHospitalBusinessHour> businessHours = this.<HospitalBusinessHour, QHospitalBusinessHour>createList("businessHours", HospitalBusinessHour.class, QHospitalBusinessHour.class, PathInits.DIRECT2);
+
+    public final ListPath<HospitalDepartment, QHospitalDepartment> departments = this.<HospitalDepartment, QHospitalDepartment>createList("departments", HospitalDepartment.class, QHospitalDepartment.class, PathInits.DIRECT2);
 
     public final QFacility facility;
 
@@ -30,7 +34,9 @@ public class QHospital extends EntityPathBase<Hospital> {
 
     public final NumberPath<Long> hospitalId = createNumber("hospitalId", Long.class);
 
-    public final StringPath institutionType = createString("institutionType");
+    public final StringPath hospitalName = createString("hospitalName");
+
+    public final ListPath<HospitalInstitution, QHospitalInstitution> institutions = this.<HospitalInstitution, QHospitalInstitution>createList("institutions", HospitalInstitution.class, QHospitalInstitution.class, PathInits.DIRECT2);
 
     public QHospital(String variable) {
         this(Hospital.class, forVariable(variable), INITS);
