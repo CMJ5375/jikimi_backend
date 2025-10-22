@@ -25,13 +25,13 @@ public class JPost {
 //    @JoinColumn(name = "category_id") // NULL 허용
 //    private BoardCategory category;
 
-//    보드 이넘타입으로 바꿈
+    //    보드 이넘타입으로 바꿈
     @Enumerated(EnumType.STRING)
     private BoardCategory boardCategory;
 
     //작성자
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "juser_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private JUser user;
 
     //제목
