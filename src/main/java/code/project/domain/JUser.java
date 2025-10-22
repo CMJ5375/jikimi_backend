@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @ToString
-public class User {
+public class JUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,15 +46,15 @@ public class User {
     //memberRoleList가 실제로 사용될 때 데이터를 로드
     @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
-    private List<MemberRole> memberRoleList = new ArrayList<>();
+    private List<JMemberRole> JMemberRoleList = new ArrayList<>();
 
     //권한부여
-    public void addRole(MemberRole memberRole){
-        memberRoleList.add(memberRole);
+    public void addRole(JMemberRole JMemberRole){
+        JMemberRoleList.add(JMemberRole);
     }
 
     //권한삭제
     public void clearRole(){
-        memberRoleList.clear();
+        JMemberRoleList.clear();
     }
 }

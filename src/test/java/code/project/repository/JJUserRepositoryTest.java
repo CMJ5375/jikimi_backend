@@ -1,25 +1,22 @@
 package code.project.repository;
 
-import code.project.domain.MemberRole;
-import code.project.domain.User;
+import code.project.domain.JMemberRole;
+import code.project.domain.JUser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.Commit;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @SpringBootTest
-class UserRepositoryTest {
+class JJUserRepositoryTest {
 
     @Autowired
-    UserRepository userRepository;
+    JUserRepository JUserRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -27,7 +24,7 @@ class UserRepositoryTest {
     @Test
     @DisplayName("User 저장/조회")
     void saveAndFindUser() {
-        User u = User.builder()
+        JUser u = JUser.builder()
                 .username("tester")
                 .password("1234")
                 .name("테스터")
@@ -35,16 +32,16 @@ class UserRepositoryTest {
                 .socialType("LOCAL")
                 .build();
 
-        User saved = userRepository.save(u);
+        JUser saved = JUserRepository.save(u);
 
         assertThat(saved.getUserId()).isNotNull();
-        assertThat(userRepository.existsByUsername("tester")).isTrue();
+        assertThat(JUserRepository.existsByUsername("tester")).isTrue();
     }
 
 //    관리자 등급 1명 가입
     @Test
     void 가입() {
-        User user = User.builder()
+        JUser JUser = JUser.builder()
                 .username("test2")
                 .password(passwordEncoder.encode("1234"))
                 .name("테스터2")
@@ -52,9 +49,9 @@ class UserRepositoryTest {
                 .socialType("LOCAL")
                 .build();
 
-        user.addRole(MemberRole.USER);
+        JUser.addRole(JMemberRole.USER);
 
-        userRepository.save(user);
+        JUserRepository.save(JUser);
     }
 
 //    사용자 읽어오기
@@ -62,7 +59,7 @@ class UserRepositoryTest {
     public void 사용자조회(){
         String username = "test4";
 
-        User user = userRepository.getwithRoles(username);
+        JUser JUser = JUserRepository.getwithRoles(username);
     }
 
 //    회원 삭제
@@ -70,11 +67,11 @@ class UserRepositoryTest {
     void 회원삭제() {
         String username = "test4";
 
-        User user = userRepository.getwithRoles(username);
-        if(user == null) {
+        JUser JUser = JUserRepository.getwithRoles(username);
+        if(JUser == null) {
             return;
         }
 
-        userRepository.delete(user);
+        JUserRepository.delete(JUser);
     }
 }

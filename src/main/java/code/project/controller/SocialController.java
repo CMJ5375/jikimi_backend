@@ -1,8 +1,7 @@
 package code.project.controller;
 
-import code.project.dto.KakaoUserInfoDTO;
-import code.project.dto.UserDTO;
-import code.project.service.UserService;
+import code.project.dto.JUserDTO;
+import code.project.service.JUserService;
 import code.project.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,15 +16,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SocialController {
 
-    private final UserService userService;
+    private final JUserService JUserService;
 
     @GetMapping("/project/user/kakao")
     public Map<String, Object> getUserFromKakao(@RequestParam("accessToken") String accessToken) {
         log.info("react에서 가져온 access Token {}", accessToken);
 
-        UserDTO userDTO = userService.getKakaoUser(accessToken);
+        JUserDTO JUserDTO = JUserService.getKakaoUser(accessToken);
 
-        Map<String, Object> claims = userDTO.getClaims();
+        Map<String, Object> claims = JUserDTO.getClaims();
 
         String jwtAccessToken = JWTUtil.generateToken(claims, 10);
         String jwtRefreshToken = JWTUtil.generateToken(claims, 60 * 24);

@@ -1,7 +1,7 @@
 package code.project.repository.search;
 
-import code.project.domain.Post;
-import code.project.domain.QPost;
+import code.project.domain.JPost;
+import code.project.domain.QJPost;
 import code.project.dto.PageRequestDTO;
 import com.querydsl.jpa.JPQLQuery;
 import lombok.extern.slf4j.Slf4j;
@@ -15,20 +15,20 @@ import java.util.List;
 import java.util.Objects;
 
 @Slf4j
-public class PostSearchImpl extends QuerydslRepositorySupport implements PostSearch {
+public class JPostSearchImpl extends QuerydslRepositorySupport implements JPostSearch {
 
-    public PostSearchImpl() {
-        super(Post.class);
+    public JPostSearchImpl() {
+        super(JPost.class);
     }
 
     @Override
-    public Page<Post> search1(PageRequestDTO pageRequestDTO) {
+    public Page<JPost> search1(PageRequestDTO pageRequestDTO) {
         log.info("PostSearchImpl.search1() called: {}", pageRequestDTO);
 
-        QPost post = QPost.post;
+        QJPost post = QJPost.jPost;
 
         // 기본 Query
-        JPQLQuery<Post> query = from(post);
+        JPQLQuery<JPost> query = from(post);
 
         // (필요하면 여기서 검색조건 추가)
         // if (pageRequestDTO.getKeyword() != null) {
@@ -47,7 +47,7 @@ public class PostSearchImpl extends QuerydslRepositorySupport implements PostSea
         Objects.requireNonNull(getQuerydsl()).applyPagination(pageable, query);
 
         // 실행
-        List<Post> list = query.fetch();
+        List<JPost> list = query.fetch();
         long total = query.fetchCount();
 
         return new PageImpl<>(list, pageable, total);

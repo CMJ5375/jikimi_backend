@@ -1,6 +1,6 @@
 package code.project.security.filter;
 
-import code.project.dto.UserDTO;
+import code.project.dto.JUserDTO;
 import code.project.util.JWTUtil;
 import com.google.gson.Gson;
 import jakarta.servlet.FilterChain;
@@ -54,12 +54,12 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             String email = (String) claims.get("email");
             List<String> roleNames = (List<String>) claims.get("memberRoleList");
 
-            UserDTO userDTO = new UserDTO(username, password, name, address, age, email, roleNames);
+            JUserDTO JUserDTO = new JUserDTO(username, password, name, address, age, email, roleNames);
 
-            log.info("멤버? {}", userDTO);
-            log.info("멤버 권한? {}", userDTO.getAuthorities());
+            log.info("멤버? {}", JUserDTO);
+            log.info("멤버 권한? {}", JUserDTO.getAuthorities());
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDTO, password, userDTO.getAuthorities());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(JUserDTO, password, JUserDTO.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 

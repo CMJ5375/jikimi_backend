@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @ToString
-public class UserDTO extends User {
+public class JUserDTO extends User {
 
     private String username, password, name, address, email;
 
@@ -20,7 +20,7 @@ public class UserDTO extends User {
 
     private List<String> roleNames = new ArrayList<>();
 
-    public UserDTO(String username, String password, String name, String address, Integer age, String email, List<String> roleNames) {
+    public JUserDTO(String username, String password, String name, String address, Integer age, String email, List<String> roleNames) {
         super(
                 username,
                 password,

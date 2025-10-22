@@ -1,10 +1,10 @@
 package code.project.service;
 
-import code.project.domain.MemberRole;
-import code.project.domain.User;
+import code.project.domain.JMemberRole;
+import code.project.domain.JUser;
 import code.project.dto.KakaoUserInfoDTO;
-import code.project.dto.UserDTO;
-import code.project.repository.UserRepository;
+import code.project.dto.JUserDTO;
+import code.project.repository.JUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -23,28 +23,28 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService{
+public class JUserServiceImpl implements JUserService {
 
-    private final UserRepository userRepository;
+    private final JUserRepository JUserRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDTO getKakaoUser(String accessToken) {
+    public JUserDTO getKakaoUser(String accessToken) {
         KakaoUserInfoDTO kakaoUserInfo = getNicknameFromAccessToken(accessToken);
 
         log.info("가져온 nickname : {}", kakaoUserInfo);
 
-        Optional<User> result = userRepository.getCodeUserByUsername(kakaoUserInfo.getUsername());
+        Optional<JUser> result = JUserRepository.getCodeUserByUsername(kakaoUserInfo.getUsername());
         //기존회원
         if(result.isPresent()) {
-            UserDTO userDTO = entityToDTO(result.get());
-            return userDTO;
+            JUserDTO JUserDTO = entityToDTO(result.get());
+            return JUserDTO;
         }
-        User socialUser = makeSocialUser(kakaoUserInfo.getUsername(), kakaoUserInfo.getName());
-        userRepository.save(socialUser);
-        UserDTO userDTO = entityToDTO(socialUser);
-        return userDTO;
+        JUser socialJUser = makeSocialUser(kakaoUserInfo.getUsername(), kakaoUserInfo.getName());
+        JUserRepository.save(socialJUser);
+        JUserDTO JUserDTO = entityToDTO(socialJUser);
+        return JUserDTO;
     }
 
     private KakaoUserInfoDTO getNicknameFromAccessToken(String accessToken) {
@@ -99,21 +99,20 @@ public class UserServiceImpl implements UserService{
     }
 
 //    소셜회원 만들기
-    private User makeSocialUser(String username, String name) {
+    private JUser makeSocialUser(String username, String name) {
         String tempPassword = makeTempPassword();
 
         log.info("tempPassword: " + tempPassword);
 
         //회원만들기
-        User user = User.builder()
+        JUser user = JUser.builder()
                 .username(username)
                 .password(passwordEncoder.encode(tempPassword))
                 .name(name)
                 .email(username)
                 .socialType("KAKAO")
                 .build();
-        user.addRole(MemberRole.USER);
-
+        user.addRole(JMemberRole.USER);
         return user;
     }
 }

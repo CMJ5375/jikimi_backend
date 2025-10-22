@@ -1,10 +1,10 @@
 package code.project.repository;
 
 import code.project.domain.BoardCategory;
-import code.project.domain.Post;
-import code.project.domain.User;
+import code.project.domain.JPost;
+import code.project.domain.JUser;
 import code.project.dto.PageRequestDTO;
-import code.project.service.PostService;
+import code.project.service.JPostService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,46 +12,44 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @Slf4j
-class PostRepositoryTest {
+class JJPostRepositoryTest {
 
     @Autowired
-    PostRepository postRepository;
+    JPostRepository JPostRepository;
 
     @Autowired
-    UserRepository userRepository;
+    JUserRepository JUserRepository;
     @Autowired
-    private PostService postService;
+    private JPostService JPostService;
 
     @Test
     void 게시글등록(){
-        User user = userRepository.findById(1L).orElseThrow();
-        Post post = Post.builder()
+        JUser JUser = JUserRepository.findById(1L).orElseThrow();
+        JPost JPost = JPost.builder()
                 .boardCategory(BoardCategory.FREE)
-                .user(user)
+                .JUser(JUser)
                 .title("복강경 수술 후기")
                 .content("너무 아팠어요 다신 경험하고 싶지 않아요")
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        postRepository.save(post);
+        JPostRepository.save(JPost);
     }
 
     @Test
     void 게시글등록2(){
-        User user = userRepository.findById(1L).orElseThrow();
-        Post post = Post.builder()
+        JUser JUser = JUserRepository.findById(1L).orElseThrow();
+        JPost JPost = JPost.builder()
                 .boardCategory(BoardCategory.FREE)
-                .user(user)
+                .JUser(JUser)
                 .title("복강경 수술 후기1")
                 .content("너무 아팠어요 다신 경험하고 싶지 않아요1")
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        postRepository.save(post);
+        JPostRepository.save(JPost);
     }
 
     @Test

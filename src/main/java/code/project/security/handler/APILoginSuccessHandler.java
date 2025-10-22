@@ -1,9 +1,8 @@
 package code.project.security.handler;
 
-import code.project.dto.UserDTO;
+import code.project.dto.JUserDTO;
 import code.project.util.JWTUtil;
 import com.google.gson.Gson;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,10 +22,10 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("로그인 성공 후 인증정보 : {}", authentication);
 
         //인증된 사용자의 정보(authentication.getPrincipal())를 반환, UserDTO 객체로 캐스팅
-        UserDTO userDTO = (UserDTO) authentication.getPrincipal();
+        JUserDTO JUserDTO = (JUserDTO) authentication.getPrincipal();
 
         //사용자의 클레임데이터를 가져온다.
-        Map<String, Object> claims = userDTO.getClaims();
+        Map<String, Object> claims = JUserDTO.getClaims();
 
         //JWTUtil을 이용해서 Access Token과 Refresh Token생성한다.
         String accessToken = JWTUtil.generateToken(claims, 10);

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostDTO {
+public class JPostDTO {
         private Long postId;
         private BoardCategory boardCategory;
         private String title;
