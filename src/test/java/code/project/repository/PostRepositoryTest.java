@@ -57,6 +57,6 @@ class PostRepositoryTest {
     @Test
     public void 페이징리스트() {
         PageRequestDTO pageRequestDTO = PageRequestDTO.builder().build();
-        log.info("페이징리스트 기본값 {}", postService.getList(pageRequestDTO));
+//        log.info("페이징리스트 기본값 {}", postService.getList(pageRequestDTO));
     }
 }
