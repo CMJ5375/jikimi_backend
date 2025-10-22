@@ -24,12 +24,13 @@ public class JWTCheckFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        // 로그인, 회원가입, 그리고 병원/약국 정보 API는 필터 건너뛰기
-        if(path.startsWith("/project/user/") || path.startsWith("/api/facilities")) {
-            return true;
+        // 로그인 필요 없는 공개 경로 설정
+        if (path.startsWith("/project/user/") ||       // 회원가입 / 로그인 등
+                path.startsWith("/project/hospital/") ||   // 병원 검색 / 상세
+                path.startsWith("/project/pharmacy/") ||   // 약국 검색 / 상세
+                path.startsWith("/project/facility/")) {   // 시설 공통 정보 (필요 시)
+            return true;  //이 경로들은 JWT 필터 통과 (검증 안 함)
         }
-
-        log.info("체크url {}", path);
         return false;
     }
 
