@@ -1,64 +1,67 @@
 package code.project.service;
 
 import code.project.domain.Hospital;
-import code.project.domain.HospitalDepartment;
-import code.project.domain.HospitalInstitution;
 import code.project.dto.FacilityBusinessHourDTO;
 import code.project.dto.HospitalDTO;
-import code.project.repository.HospitalDepartmentRepository;
-import code.project.repository.HospitalInstitutionRepository;
 import code.project.repository.HospitalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
-    private final HospitalDepartmentRepository departmentRepository;
-    private final HospitalInstitutionRepository institutionRepository;
 
-    //병원 검색 서비스 로직
+    // 병원 검색 서비스 로직 (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실여부)
+    @Transactional(readOnly = true)
     public Page<HospitalDTO> searchHospitals(String keyword, String org, String dept,
                                              Boolean emergency, double lat, double lng, Pageable pageable) {
-        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
-        if (org != null && org.trim().isEmpty()) org = null;
-        if (dept != null && dept.trim().isEmpty()) dept = null;
 
-        Page<Object[]> result = hospitalRepository.searchHospitalsWithDistance(keyword, org, dept, emergency, lat, lng, pageable);
+        String k = normalize(keyword);
+        String o = normalize(org);
+        String d = normalize(dept);
+
+        Page<Object[]> result = hospitalRepository.searchHospitalsWithDistanceNative(
+                k, o, d, emergency, lat, lng, pageable
+        );
 
         List<HospitalDTO> dtoList = result.getContent().stream()
                 .map(row -> {
-                    Hospital hospital = (Hospital) row[0];
-                    Double distance = (Double) row[1];
-                    return HospitalDTO.fromEntity(hospital).withDistance(distance);
+                    // 네이티브 쿼리: [0]=Hospital, 마지막 인덱스 = distance(Double)
+                    Object first = row[0];
+                    if (!(first instanceof Hospital hospital)) {
+                        throw new IllegalStateException(
+                                "Native query did not return Hospital entity at index 0."
+                        );
+                    }
+                    Double distance = toDouble(row[row.length - 1]);
+                    HospitalDTO dto = HospitalDTO.fromEntity(hospital);
+                    if (distance != null) dto.withDistance(round2(distance));
+                    return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         return new PageImpl<>(dtoList, pageable, result.getTotalElements());
     }
 
     /**
      * 병원 목록 조회 (페이징)
-     * DTO 변환 시 facility 및 facility.businessHours 접근이 있으므로
-     * 1) @Transactional(readOnly = true) 로 세션 보장
-     * 2) 또는 HospitalRepository에서 @EntityGraph로 facility(+businessHours) 프리패치 권장
+     * - HospitalRepository.findAll(pageable)는 @EntityGraph로 facility + businessHours 프리패치
      */
     @Transactional(readOnly = true)
     public Page<HospitalDTO> getHospitalList(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("hospitalName").ascending());
-        return hospitalRepository.findAll(pageable)
-                .map(HospitalDTO::fromEntity);
+        return hospitalRepository.findAll(pageable).map(HospitalDTO::fromEntity);
     }
 
     /**
-     * 병원 상세 조회
+     * 병원 상세 조회 (facility + businessHours 프리패치)
      */
     @Transactional(readOnly = true)
     public HospitalDTO getHospitalDetail(Long id) {
@@ -67,25 +70,63 @@ public class HospitalService {
         return HospitalDTO.fromEntity(hospital);
     }
 
+    /**
+     * 진료과목 목록 (CSV → List<String>)
+     */
     @Transactional(readOnly = true)
-    public List<HospitalDepartment> getDepartments(Long hospitalId) {
-        return departmentRepository.findByHospital_HospitalId(hospitalId);
+    public List<String> getDepartments(Long hospitalId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new IllegalArgumentException("병원을 찾을 수 없습니다."));
+        return splitCsv(hospital.getDepartmentsCsv());
     }
 
+    /**
+     * 보유 장비/기관자원 목록 (CSV → List<String>)
+     */
     @Transactional(readOnly = true)
-    public List<HospitalInstitution> getInstitutions(Long hospitalId) {
-        return institutionRepository.findByHospital_HospitalId(hospitalId);
+    public List<String> getInstitutions(Long hospitalId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new IllegalArgumentException("병원을 찾을 수 없습니다."));
+        return splitCsv(hospital.getInstitutionsCsv());
     }
 
     @Transactional(readOnly = true)
     public List<FacilityBusinessHourDTO> getFacilityBusinessHoursByHospitalId(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new IllegalArgumentException("병원을 찾을 수 없습니다."));
-
         return hospital.getFacility().getBusinessHours()
                 .stream()
                 .map(FacilityBusinessHourDTO::fromEntity)
                 .toList();
     }
 
+    // ---------- helpers ----------
+    private static String normalize(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    private static List<String> splitCsv(String csv) {
+        if (csv == null || csv.isBlank()) return List.of();
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .toList();
+    }
+
+    private static Double toDouble(Object o) {
+        if (o == null) return null;
+        if (o instanceof Double d) return d;
+        if (o instanceof Float f) return (double) f;
+        if (o instanceof Number n) return n.doubleValue();
+        if (o instanceof String s && !s.isBlank()) {
+            try { return Double.parseDouble(s); } catch (NumberFormatException ignore) {}
+        }
+        return null;
+    }
+
+    private static Double round2(Double v) {
+        if (v == null) return null;
+        return Math.round(v * 100.0) / 100.0;
+    }
 }
