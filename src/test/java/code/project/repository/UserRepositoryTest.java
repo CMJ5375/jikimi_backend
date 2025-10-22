@@ -63,10 +63,21 @@ class UserRepositoryTest {
 //    사용자 읽어오기
     @Test
     public void 사용자조회(){
-        String username = "test2";
+        String username = "test4";
 
         User user = userRepository.getwithRoles(username);
-        log.info("조회 {}", user);
-        log.info("admin 회원의 권한 {}", user.getMemberRoleList());
+    }
+
+//    회원 삭제
+    @Test
+    void 회원삭제() {
+        String username = "test4";
+
+        User user = userRepository.getwithRoles(username);
+        if(user == null) {
+            return;
+        }
+
+        userRepository.delete(user);
     }
 }
