@@ -22,8 +22,6 @@ public class QPharmacy extends EntityPathBase<Pharmacy> {
 
     public static final QPharmacy pharmacy = new QPharmacy("pharmacy");
 
-    public final StringPath businessHour = createString("businessHour");
-
     public final QFacility facility;
 
     public final NumberPath<Long> pharmacyId = createNumber("pharmacyId", Long.class);

@@ -5,6 +5,8 @@ import code.project.domain.FacilityType;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -23,7 +25,8 @@ public class FacilityDTO {
     private String regionCode;
     private String orgType;
 
-    // Entity → DTO 변환 메서드
+    private List<FacilityBusinessHourDTO> businessHours; // 추가됨
+
     public static FacilityDTO fromEntity(Facility facility) {
         return FacilityDTO.builder()
                 .facilityId(facility.getFacilityId())
@@ -35,6 +38,10 @@ public class FacilityDTO {
                 .longitude(facility.getLongitude())
                 .regionCode(facility.getRegionCode())
                 .orgType(facility.getOrgType())
+                .businessHours(facility.getBusinessHours()
+                        .stream()
+                        .map(FacilityBusinessHourDTO::fromEntity)
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

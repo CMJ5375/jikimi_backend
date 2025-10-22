@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -20,6 +21,8 @@ public class QFacility extends EntityPathBase<Facility> {
     public static final QFacility facility = new QFacility("facility");
 
     public final StringPath address = createString("address");
+
+    public final ListPath<FacilityBusinessHour, QFacilityBusinessHour> businessHours = this.<FacilityBusinessHour, QFacilityBusinessHour>createList("businessHours", FacilityBusinessHour.class, QFacilityBusinessHour.class, PathInits.DIRECT2);
 
     public final NumberPath<Long> facilityId = createNumber("facilityId", Long.class);
 
