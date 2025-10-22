@@ -45,11 +45,6 @@ public class CustomSecurityConfig {
             config.failureHandler(new APILoginFailHandler());
         });
 
-        // 잠시 추가. 개발 중이니까 권한 전부 해제
-        http.authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-        );
-
         //JWT 필터는 인증이 필요한 요청만 검사하도록 유지
         http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 

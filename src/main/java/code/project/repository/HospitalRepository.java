@@ -13,7 +13,7 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
 
     // 병원 검색 쿼리 = 거리순 + 응급실 여부 필터 + 전체 조회
     @Query("""
-        SELECT h,
+        SELECT DISTINCT h,
                (6371 * acos(
                    cos(radians(:lat)) * cos(radians(f.latitude))
                  * cos(radians(f.longitude) - radians(:lng))
