@@ -17,11 +17,11 @@ public class JComment {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    private JPost JPost;
+    private JPost post;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private JUser JUser;
+    private JUser user;
 
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")

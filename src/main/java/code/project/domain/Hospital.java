@@ -23,8 +23,8 @@ public class Hospital {
     @Column(nullable = false, length = 255)
     private String hospitalName;
 
-
     @Column(nullable = false)
+    @Builder.Default
     private boolean hasEmergency = false;
 
     @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)

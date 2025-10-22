@@ -39,8 +39,8 @@ public class JUser {
 
     // 'LOCAL', 'KAKAO', 'GOOGLE' 중 하나
     @Column(nullable = false, length = 10)
+    @Builder.Default
     private String socialType = "LOCAL";
-
 
     //등급 권한 배열형으로 수정
     //memberRoleList가 실제로 사용될 때 데이터를 로드
