@@ -52,7 +52,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             String address = (String) claims.get("address");
             Integer age = (Integer) claims.get("age");
             String email = (String) claims.get("email");
-            List<String> roleNames = (List<String>) claims.get("memberRoleList");
+            List<String> roleNames = (List<String>) claims.get("roleNames");
 
             JUserDTO JUserDTO = new JUserDTO(username, password, name, address, age, email, roleNames);
 
