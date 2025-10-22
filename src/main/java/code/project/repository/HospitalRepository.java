@@ -23,7 +23,6 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
         JOIN h.facility f
         LEFT JOIN h.departments d
         WHERE (:keyword IS NULL OR h.hospitalName LIKE CONCAT('%', :keyword, '%'))
-          AND (:org IS NULL OR f.orgType LIKE CONCAT('%', :org, '%'))
           AND (:dept IS NULL OR d.departmentName LIKE CONCAT('%', :dept, '%'))
           AND (:emergency IS NULL OR h.hasEmergency = :emergency)
         ORDER BY distance ASC

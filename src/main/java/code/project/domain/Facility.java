@@ -39,9 +39,6 @@ public class Facility {
     @Column(length = 20)
     private String regionCode;
 
-    @Column(length = 50)
-    private String orgType;
-
     @OneToMany(mappedBy = "facility", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<FacilityBusinessHour> businessHours = new ArrayList<>();
