@@ -37,7 +37,6 @@ public class FacilityDTO {
                 .latitude(facility.getLatitude())
                 .longitude(facility.getLongitude())
                 .regionCode(facility.getRegionCode())
-                .orgType(facility.getOrgType())
                 .businessHours(facility.getBusinessHours()
                         .stream()
                         .map(FacilityBusinessHourDTO::fromEntity)
