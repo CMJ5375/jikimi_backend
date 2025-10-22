@@ -16,6 +16,7 @@ public class HospitalDTO {
     private Long hospitalId;
     private String hospitalName;
     private boolean hasEmergency;
+    private Double distance;
 
     private FacilityDTO facility; // 상위 facility 정보
     private List<HospitalDepartmentDTO> departments;
@@ -44,5 +45,10 @@ public class HospitalDTO {
                         .map(FacilityBusinessHourDTO::fromEntity)
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    public HospitalDTO withDistance(Double distanceKm) {
+        this.distance = distanceKm;
+        return this;
     }
 }

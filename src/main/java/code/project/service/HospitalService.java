@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +23,26 @@ public class HospitalService {
     private final HospitalRepository hospitalRepository;
     private final HospitalDepartmentRepository departmentRepository;
     private final HospitalInstitutionRepository institutionRepository;
+
+    //병원 검색 서비스 로직
+    public Page<HospitalDTO> searchHospitals(String keyword, String org, String dept,
+                                             Boolean emergency, double lat, double lng, Pageable pageable) {
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+        if (org != null && org.trim().isEmpty()) org = null;
+        if (dept != null && dept.trim().isEmpty()) dept = null;
+
+        Page<Object[]> result = hospitalRepository.searchHospitalsWithDistance(keyword, org, dept, emergency, lat, lng, pageable);
+
+        List<HospitalDTO> dtoList = result.getContent().stream()
+                .map(row -> {
+                    Hospital hospital = (Hospital) row[0];
+                    Double distance = (Double) row[1];
+                    return HospitalDTO.fromEntity(hospital).withDistance(distance);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtoList, pageable, result.getTotalElements());
+    }
 
     /**
      * 병원 목록 조회 (페이징)

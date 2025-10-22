@@ -18,24 +18,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Commit
-class UserFavoriteRepositoryTest {
+class JJJUserFavoriteRepositoryTest {
 
-    @Autowired UserRepository userRepository;
+    @Autowired
+    JUserRepository JUserRepository;
     @Autowired FacilityRepository facilityRepository;
-    @Autowired UserFavoriteRepository userFavoriteRepository;
+    @Autowired
+    JUserFavoriteRepository JUserFavoriteRepository;
 
     @Test
     @DisplayName("즐겨찾기 저장/조회/존재여부/삭제")
     void favoritesCrud() {
         // 사용자
-        User user = userRepository.save(User.builder()
+        JUser JUser = JUserRepository.save(JUser.builder()
                 .username("favuser")
                 .password("1234")
                 .name("즐겨찾기유저")
                 .email("fav@example.com")
                 .socialType("LOCAL")
                 .build());
-        user.addRole(MemberRole.USER);
+        JUser.addRole(JMemberRole.USER);
 
         // 기관
         Facility f = facilityRepository.save(Facility.builder()
@@ -47,20 +49,20 @@ class UserFavoriteRepositoryTest {
                 .build());
 
         // 즐겨찾기 저장 (복합키)
-        UserFavorite uf = new UserFavorite();
-        uf.setUser(user);
+        JUserFavorite uf = new JUserFavorite();
+        uf.setJUser(JUser);
         uf.setFacility(f);
-        uf.setId(new UserFavoriteId(user.getUserId(), f.getFacilityId()));
+        uf.setId(new JUserFavoriteId(JUser.getUserId(), f.getFacilityId()));
 
-        userFavoriteRepository.save(uf);
+        JUserFavoriteRepository.save(uf);
 
         // 목록 조회
-        List<UserFavorite> list = userFavoriteRepository.findById_UserId(user.getUserId());
+        List<JUserFavorite> list = JUserFavoriteRepository.findById_UserId(JUser.getUserId());
         assertThat(list).hasSize(1);
 
         // 존재 여부
-        boolean exists = userFavoriteRepository.existsById_UserIdAndId_FacilityId(
-                user.getUserId(), f.getFacilityId());
+        boolean exists = JUserFavoriteRepository.existsById_UserIdAndId_FacilityId(
+                JUser.getUserId(), f.getFacilityId());
         assertThat(exists).isTrue();
 
         // 삭제

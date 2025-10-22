@@ -10,29 +10,29 @@ import com.querydsl.core.types.Path;
 
 
 /**
- * QUserFavoriteId is a Querydsl query type for UserFavoriteId
+ * QJUserFavoriteId is a Querydsl query type for JUserFavoriteId
  */
 @Generated("com.querydsl.codegen.DefaultEmbeddableSerializer")
-public class QUserFavoriteId extends BeanPath<UserFavoriteId> {
+public class QJUserFavoriteId extends BeanPath<JUserFavoriteId> {
 
-    private static final long serialVersionUID = -1208368330L;
+    private static final long serialVersionUID = -1960283560L;
 
-    public static final QUserFavoriteId userFavoriteId = new QUserFavoriteId("userFavoriteId");
+    public static final QJUserFavoriteId jUserFavoriteId = new QJUserFavoriteId("jUserFavoriteId");
 
     public final NumberPath<Long> facilityId = createNumber("facilityId", Long.class);
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
-    public QUserFavoriteId(String variable) {
-        super(UserFavoriteId.class, forVariable(variable));
+    public QJUserFavoriteId(String variable) {
+        super(JUserFavoriteId.class, forVariable(variable));
     }
 
-    public QUserFavoriteId(Path<? extends UserFavoriteId> path) {
+    public QJUserFavoriteId(Path<? extends JUserFavoriteId> path) {
         super(path.getType(), path.getMetadata());
     }
 
-    public QUserFavoriteId(PathMetadata metadata) {
-        super(UserFavoriteId.class, metadata);
+    public QJUserFavoriteId(PathMetadata metadata) {
+        super(JUserFavoriteId.class, metadata);
     }
 
 }

@@ -15,6 +15,7 @@ public class PharmacyDTO {
 
     private Long pharmacyId;
     private String pharmacyName;
+    private Double distance;
 
     private FacilityDTO facility;
     private List<FacilityBusinessHourDTO> facilityBusinessHours;
@@ -29,5 +30,10 @@ public class PharmacyDTO {
                         .map(FacilityBusinessHourDTO::fromEntity)
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    public PharmacyDTO withDistance(Double distanceKm) {
+        this.distance = distanceKm;
+        return this;
     }
 }

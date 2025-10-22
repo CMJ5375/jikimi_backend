@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QComment is a Querydsl query type for Comment
+ * QJComment is a Querydsl query type for JComment
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QComment extends EntityPathBase<Comment> {
+public class QJComment extends EntityPathBase<JComment> {
 
-    private static final long serialVersionUID = 162463659L;
+    private static final long serialVersionUID = -281791799L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QComment comment = new QComment("comment");
+    public static final QJComment jComment = new QJComment("jComment");
 
     public final NumberPath<Long> commentId = createNumber("commentId", Long.class);
 
@@ -28,30 +28,30 @@ public class QComment extends EntityPathBase<Comment> {
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
-    public final QPost post;
+    public final QJPost JPost;
 
-    public final QUser user;
+    public final QJUser JUser;
 
-    public QComment(String variable) {
-        this(Comment.class, forVariable(variable), INITS);
+    public QJComment(String variable) {
+        this(JComment.class, forVariable(variable), INITS);
     }
 
-    public QComment(Path<? extends Comment> path) {
+    public QJComment(Path<? extends JComment> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QComment(PathMetadata metadata) {
+    public QJComment(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QComment(PathMetadata metadata, PathInits inits) {
-        this(Comment.class, metadata, inits);
+    public QJComment(PathMetadata metadata, PathInits inits) {
+        this(JComment.class, metadata, inits);
     }
 
-    public QComment(Class<? extends Comment> type, PathMetadata metadata, PathInits inits) {
+    public QJComment(Class<? extends JComment> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.post = inits.isInitialized("post") ? new QPost(forProperty("post"), inits.get("post")) : null;
-        this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
+        this.JPost = inits.isInitialized("JPost") ? new QJPost(forProperty("JPost"), inits.get("JPost")) : null;
+        this.JUser = inits.isInitialized("JUser") ? new QJUser(forProperty("JUser")) : null;
     }
 
 }

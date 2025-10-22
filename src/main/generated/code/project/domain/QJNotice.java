@@ -11,20 +11,22 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QNotice is a Querydsl query type for Notice
+ * QJNotice is a Querydsl query type for JNotice
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QNotice extends EntityPathBase<Notice> {
+public class QJNotice extends EntityPathBase<JNotice> {
 
-    private static final long serialVersionUID = 1982934028L;
+    private static final long serialVersionUID = 1137319214L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QNotice notice = new QNotice("notice");
+    public static final QJNotice jNotice = new QJNotice("jNotice");
 
     public final StringPath content = createString("content");
 
     public final StringPath fileUrl = createString("fileUrl");
+
+    public final QJUser JUser;
 
     public final NumberPath<Integer> likeCount = createNumber("likeCount", Integer.class);
 
@@ -32,29 +34,27 @@ public class QNotice extends EntityPathBase<Notice> {
 
     public final StringPath title = createString("title");
 
-    public final QUser user;
-
     public final NumberPath<Integer> viewCount = createNumber("viewCount", Integer.class);
 
-    public QNotice(String variable) {
-        this(Notice.class, forVariable(variable), INITS);
+    public QJNotice(String variable) {
+        this(JNotice.class, forVariable(variable), INITS);
     }
 
-    public QNotice(Path<? extends Notice> path) {
+    public QJNotice(Path<? extends JNotice> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QNotice(PathMetadata metadata) {
+    public QJNotice(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QNotice(PathMetadata metadata, PathInits inits) {
-        this(Notice.class, metadata, inits);
+    public QJNotice(PathMetadata metadata, PathInits inits) {
+        this(JNotice.class, metadata, inits);
     }
 
-    public QNotice(Class<? extends Notice> type, PathMetadata metadata, PathInits inits) {
+    public QJNotice(Class<? extends JNotice> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
+        this.JUser = inits.isInitialized("JUser") ? new QJUser(forProperty("JUser")) : null;
     }
 
 }

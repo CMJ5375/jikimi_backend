@@ -10,12 +10,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PharmacyService {
 
     private final PharmacyRepository pharmacyRepository;
+
+    // 약국 검색 서비스 로직
+    public Page<PharmacyDTO> searchPharmacies(String keyword, double lat, double lng, Pageable pageable) {
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+
+        Page<Object[]> result = pharmacyRepository.searchPharmaciesWithDistance(keyword, lat, lng, pageable);
+
+        List<PharmacyDTO> dtoList = result.getContent().stream()
+                .map(row -> {
+                    Pharmacy pharmacy = (Pharmacy) row[0];
+                    Double distance = (Double) row[1];
+                    return PharmacyDTO.fromEntity(pharmacy).withDistance(distance);
+                })
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(dtoList, pageable, result.getTotalElements());
+    }
 
     @Transactional(readOnly = true)
     public Page<PharmacyDTO> getPharmacyList(int page, int size) {

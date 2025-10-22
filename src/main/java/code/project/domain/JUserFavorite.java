@@ -11,16 +11,16 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @ToString(exclude = {"user", "facility"})
-public class UserFavorite {
+public class JUserFavorite {
 
     @EmbeddedId
-    private UserFavoriteId id; // (user_id, facility_id) 복합 PK
+    private JUserFavoriteId id; // (user_id, facility_id) 복합 PK
 
     // user_id를 PK의 일부로 공유
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId("userId") // EmbeddedId의 필드명과 일치해야 함
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private JUser JUser;
 
     // facility_id를 PK의 일부로 공유
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -29,11 +29,11 @@ public class UserFavorite {
     private Facility facility;
 
     // 팩토리 메서드 (매번 userid와 기관id 가져오기 귀찮으니 묶어버림)
-    public static UserFavorite of(User user, Facility facility) {
-        UserFavorite uf = new UserFavorite();
-        uf.setUser(user);
+    public static JUserFavorite of(JUser JUser, Facility facility) {
+        JUserFavorite uf = new JUserFavorite();
+        uf.setJUser(JUser);
         uf.setFacility(facility);
-        uf.setId(new UserFavoriteId(user.getUserId(), facility.getFacilityId()));
+        uf.setId(new JUserFavoriteId(JUser.getUserId(), facility.getFacilityId()));
         return uf;
     }
 }

@@ -3,14 +3,12 @@ package code.project.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "Notice")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder @ToString(exclude = "user")
-public class Notice {
+public class JNotice {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long noticeId;
@@ -18,7 +16,7 @@ public class Notice {
     // 작성자(ADMIN이어야 함 — 서비스 레이어에서 체크)
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private JUser JUser;
 
     @Column(nullable = false, length = 200)
     private String title;

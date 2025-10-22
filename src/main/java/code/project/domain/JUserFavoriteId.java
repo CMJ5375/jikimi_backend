@@ -12,7 +12,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode // PK이므로 equals/hashCode 필수
-public class UserFavoriteId implements Serializable {
+public class JUserFavoriteId implements Serializable {
 
     @Column(name = "user_id", nullable = false)
     private Long userId;

@@ -11,14 +11,14 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QUser is a Querydsl query type for User
+ * QJUser is a Querydsl query type for JUser
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QUser extends EntityPathBase<User> {
+public class QJUser extends EntityPathBase<JUser> {
 
-    private static final long serialVersionUID = -328450561L;
+    private static final long serialVersionUID = -1603072095L;
 
-    public static final QUser user = new QUser("user");
+    public static final QJUser jUser = new QJUser("jUser");
 
     public final StringPath address = createString("address");
 
@@ -26,7 +26,7 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath email = createString("email");
 
-    public final ListPath<MemberRole, EnumPath<MemberRole>> memberRoleList = this.<MemberRole, EnumPath<MemberRole>>createList("memberRoleList", MemberRole.class, EnumPath.class, PathInits.DIRECT2);
+    public final ListPath<JMemberRole, EnumPath<JMemberRole>> JMemberRoleList = this.<JMemberRole, EnumPath<JMemberRole>>createList("JMemberRoleList", JMemberRole.class, EnumPath.class, PathInits.DIRECT2);
 
     public final StringPath name = createString("name");
 
@@ -38,16 +38,16 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath username = createString("username");
 
-    public QUser(String variable) {
-        super(User.class, forVariable(variable));
+    public QJUser(String variable) {
+        super(JUser.class, forVariable(variable));
     }
 
-    public QUser(Path<? extends User> path) {
+    public QJUser(Path<? extends JUser> path) {
         super(path.getType(), path.getMetadata());
     }
 
-    public QUser(PathMetadata metadata) {
-        super(User.class, metadata);
+    public QJUser(PathMetadata metadata) {
+        super(JUser.class, metadata);
     }
 
 }

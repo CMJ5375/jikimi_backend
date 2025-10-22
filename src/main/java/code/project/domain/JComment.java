@@ -10,18 +10,18 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder @ToString(exclude = {"post", "user"})
-public class Comment {
+public class JComment {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    private JPost JPost;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private JUser JUser;
 
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")

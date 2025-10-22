@@ -5,6 +5,7 @@ import code.project.dto.PharmacyDTO;
 import code.project.service.PharmacyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,17 @@ import java.util.List;
 public class PharmacyController {
 
     private final PharmacyService pharmacyService;
+
+    // 약국 검색 API
+    @GetMapping("/search")
+    public Page<PharmacyDTO> searchPharmacies(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "37.432764") double lat,
+            @RequestParam(required = false, defaultValue = "127.129637") double lng,
+            Pageable pageable
+    ) {
+        return pharmacyService.searchPharmacies(keyword, lat, lng, pageable);
+    }
 
     // 약국 목록 조회 (페이징)
     @GetMapping("/list")

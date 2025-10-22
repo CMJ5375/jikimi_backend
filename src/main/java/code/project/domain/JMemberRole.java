@@ -1,5 +1,5 @@
 package code.project.domain;
 
-public enum MemberRole {
+public enum JMemberRole {
     USER, ADMIN
 }

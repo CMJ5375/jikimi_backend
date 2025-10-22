@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QPost is a Querydsl query type for Post
+ * QJPost is a Querydsl query type for JPost
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QPost extends EntityPathBase<Post> {
+public class QJPost extends EntityPathBase<JPost> {
 
-    private static final long serialVersionUID = -328602924L;
+    private static final long serialVersionUID = -1603224458L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QPost post = new QPost("post");
+    public static final QJPost jPost = new QJPost("jPost");
 
     public final EnumPath<BoardCategory> boardCategory = createEnum("boardCategory", BoardCategory.class);
 
@@ -32,33 +32,33 @@ public class QPost extends EntityPathBase<Post> {
 
     public final BooleanPath isDeleted = createBoolean("isDeleted");
 
+    public final QJUser JUser;
+
     public final NumberPath<Integer> likeCount = createNumber("likeCount", Integer.class);
 
     public final NumberPath<Long> postId = createNumber("postId", Long.class);
 
     public final StringPath title = createString("title");
 
-    public final QUser user;
-
-    public QPost(String variable) {
-        this(Post.class, forVariable(variable), INITS);
+    public QJPost(String variable) {
+        this(JPost.class, forVariable(variable), INITS);
     }
 
-    public QPost(Path<? extends Post> path) {
+    public QJPost(Path<? extends JPost> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QPost(PathMetadata metadata) {
+    public QJPost(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QPost(PathMetadata metadata, PathInits inits) {
-        this(Post.class, metadata, inits);
+    public QJPost(PathMetadata metadata, PathInits inits) {
+        this(JPost.class, metadata, inits);
     }
 
-    public QPost(Class<? extends Post> type, PathMetadata metadata, PathInits inits) {
+    public QJPost(Class<? extends JPost> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
+        this.JUser = inits.isInitialized("JUser") ? new QJUser(forProperty("JUser")) : null;
     }
 
 }

@@ -1,6 +1,6 @@
 package code.project.security.filter;
 
-import code.project.dto.UserDTO;
+import code.project.dto.JUserDTO;
 import code.project.util.JWTUtil;
 import com.google.gson.Gson;
 import jakarta.servlet.FilterChain;
@@ -24,12 +24,13 @@ public class JWTCheckFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
 
-        // 로그인, 회원가입, 그리고 병원/약국 정보 API는 필터 건너뛰기
-        if(path.startsWith("/project/user/") || path.startsWith("/api/facilities")) {
-            return true;
+        // 로그인 필요 없는 공개 경로 설정
+        if (path.startsWith("/project/user/") ||       // 회원가입 / 로그인 등
+                path.startsWith("/project/hospital/") ||   // 병원 검색 / 상세
+                path.startsWith("/project/pharmacy/") ||   // 약국 검색 / 상세
+                path.startsWith("/project/facility/")) {   // 시설 공통 정보 (필요 시)
+            return true;  //이 경로들은 JWT 필터 통과 (검증 안 함)
         }
-
-        log.info("체크url {}", path);
         return false;
     }
 
@@ -53,12 +54,12 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             String email = (String) claims.get("email");
             List<String> roleNames = (List<String>) claims.get("roleNames");
 
-            UserDTO userDTO = new UserDTO(username, password, name, address, age, email, roleNames);
+            JUserDTO JUserDTO = new JUserDTO(username, password, name, address, age, email, roleNames);
 
-            log.info("멤버? {}", userDTO);
-            log.info("멤버 권한? {}", userDTO.getAuthorities());
+            log.info("멤버? {}", JUserDTO);
+            log.info("멤버 권한? {}", JUserDTO.getAuthorities());
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDTO, password, userDTO.getAuthorities());
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(JUserDTO, password, JUserDTO.getAuthorities());
 
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
