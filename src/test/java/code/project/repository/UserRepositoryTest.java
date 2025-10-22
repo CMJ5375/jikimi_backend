@@ -16,9 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ActiveProfiles("test")
-@Commit
 class UserRepositoryTest {
 
     @Autowired
@@ -48,14 +45,14 @@ class UserRepositoryTest {
     @Test
     void 가입() {
         User user = User.builder()
-                .username("test3")
+                .username("test2")
                 .password(passwordEncoder.encode("1234"))
-                .name("테스터3")
-                .email("test3@aaa.com")
+                .name("테스터2")
+                .email("test2@aaa.com")
                 .socialType("LOCAL")
                 .build();
 
-        user.addRole(MemberRole.ADMIN);
+        user.addRole(MemberRole.USER);
 
         userRepository.save(user);
     }

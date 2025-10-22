@@ -45,7 +45,7 @@ public class FacilityHospitalPharmacyTest {
         Hospital hospital = Hospital.builder()
                 .facility(savedFacility)
                 .hospitalName(savedFacility.getName())
-                .businessHour("평일 09:00~18:00")
+//                .businessHour("평일 09:00~18:00")
                 .hasEmergency(true)
                 .build();
 
@@ -74,7 +74,7 @@ public class FacilityHospitalPharmacyTest {
         Pharmacy pharmacy = Pharmacy.builder()
                 .facility(savedFacility)
                 .pharmacyName(savedFacility.getName())
-                .businessHour("평일 09:00~20:00")
+//                .businessHour("평일 09:00~20:00")
                 .build();
 
         Pharmacy savedPharmacy = pharmacyRepository.save(pharmacy);

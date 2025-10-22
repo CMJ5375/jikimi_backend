@@ -32,6 +32,7 @@ public class UserDTO extends User {
         this.address = address;
         this.age = age;
         this.email = email;
+        this.roleNames = roleNames;
     }
 
     public Map<String, Object> getClaims() {
@@ -43,6 +44,7 @@ public class UserDTO extends User {
         dataMap.put("address", address);
         dataMap.put("age", age);
         dataMap.put("email", email);
+        dataMap.put("roleNames", roleNames);
 
         return dataMap;
     }
