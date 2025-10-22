@@ -6,6 +6,7 @@ import code.project.dto.FacilityBusinessHourDTO;
 import code.project.service.HospitalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -16,6 +17,20 @@ import java.util.List;
 public class HospitalController {
 
     private final HospitalService hospitalService;
+
+    //병원 검색 API
+    @GetMapping("/search")
+    public Page<HospitalDTO> searchHospitals(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String org,
+            @RequestParam(required = false) String dept,
+            @RequestParam(required = false) Boolean emergency,
+            @RequestParam(required = false, defaultValue = "37.432764") double lat,
+            @RequestParam(required = false, defaultValue = "127.129637") double lng,
+            Pageable pageable
+    ) {
+        return hospitalService.searchHospitals(keyword, org, dept, emergency, lat, lng, pageable);
+    }
 
     // 병원 목록 조회 (페이징)
     @GetMapping("/list")
