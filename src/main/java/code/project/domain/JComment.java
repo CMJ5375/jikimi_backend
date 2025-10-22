@@ -16,11 +16,11 @@ public class JComment {
     private Long commentId;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "jpost_id", nullable = false)
     private JPost post;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "juser_id", nullable = false)
     private JUser user;
 
     @Lob

@@ -31,7 +31,7 @@ public class JPost {
 
     //작성자
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "juser_id", nullable = false)
     private JUser user;
 
     //제목
