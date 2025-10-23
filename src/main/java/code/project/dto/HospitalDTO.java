@@ -17,7 +17,7 @@ public class HospitalDTO {
     private String hospitalName;
     private boolean hasEmergency;
     private Double distance; // 선택적
-
+    private String orgType;
     private FacilityDTO facility;
     private List<String> departments;   // 유지
     private List<String> institutions; // 유지
@@ -29,6 +29,7 @@ public class HospitalDTO {
         return HospitalDTO.builder()
                 .hospitalId(entity.getHospitalId())
                 .hospitalName(entity.getHospitalName())
+                .orgType(entity.getOrgType())
                 .hasEmergency(entity.isHasEmergency())
                 .facility(FacilityDTO.fromEntity(entity.getFacility()))
                 .departments(splitCsv(entity.getDepartmentsCsv()))
