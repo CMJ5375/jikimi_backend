@@ -34,6 +34,8 @@ public class QHospital extends EntityPathBase<Hospital> {
 
     public final StringPath institutionsCsv = createString("institutionsCsv");
 
+    public final StringPath orgType = createString("orgType");
+
     public QHospital(String variable) {
         this(Hospital.class, forVariable(variable), INITS);
     }

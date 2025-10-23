@@ -26,21 +26,30 @@ public interface JPostService {
     // ====== Mapper ======
 
     // Entity -> DTO
-    default JPostDTO entityToDTO(JPost JPost) {
-        if (JPost == null) return null;
+    default JPostDTO entityToDTO(JPost p) {
+        if (p == null) return null;
+
+        String authorName = null;
+        if (p.getUser() != null) {
+            // username, name 등 중 하나가 비어있으면 다른 걸로 보완
+            String u1 = p.getUser().getUsername();
+            String u2 = p.getUser().getName();
+            authorName = (u2 != null && !u2.isBlank())
+                    ? u2
+                    : (u1 != null ? u1 : null);
+        }
 
         return JPostDTO.builder()
-                .postId(JPost.getPostId())
-                .title(JPost.getTitle())
-                .boardCategory(JPost.getBoardCategory())
-                .content(JPost.getContent())
-                .fileUrl(JPost.getFileUrl())
-                .likeCount(JPost.getLikeCount())
-                .createdAt(JPost.getCreatedAt())
-                .isDeleted(JPost.getIsDeleted())
-                // 연관 엔티티는 user만 ID로 노출
-                .userId(JPost.getUser() != null ? JPost.getUser().getUserId() : null)
-                // Enum으로 대체했다면 여기에 .boardType(post.getBoardType()) 등 추가
+                .postId(p.getPostId())
+                .title(p.getTitle())
+                .boardCategory(p.getBoardCategory())
+                .content(p.getContent())
+                .fileUrl(p.getFileUrl())
+                .likeCount(p.getLikeCount())
+                .createdAt(p.getCreatedAt())
+                .isDeleted(p.getIsDeleted())
+                .userId(p.getUser() != null ? p.getUser().getUserId() : null)
+                .authorName(authorName) // 추가
                 .build();
     }
 
