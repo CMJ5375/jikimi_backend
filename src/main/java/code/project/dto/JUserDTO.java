@@ -24,7 +24,8 @@ public class JUserDTO extends User {
         super(
                 username,
                 password,
-                roleNames.stream().map(str -> new SimpleGrantedAuthority("ROLE_" + str)).collect(Collectors.toList()));
+                (roleNames == null ? Collections.emptyList() : roleNames.stream().map(str -> new SimpleGrantedAuthority("ROLE_" + str)).collect(Collectors.toList()))
+        );
 
         this.username = username;
         this.password = password;

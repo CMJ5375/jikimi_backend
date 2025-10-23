@@ -40,6 +40,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
         if(requestURI.equals("/project/register")) {
+            filterChain.doFilter(request, response);
             return;
         }
         String authHeaderStr = request.getHeader("Authorization");

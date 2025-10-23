@@ -130,6 +130,7 @@ public class JUserServiceImpl implements JUserService {
                 .email(jUserDTO.getEmail())
                 .name(jUserDTO.getName())
                 .password(passwordEncoder.encode(jUserDTO.getPassword()))
+                .socialType("LOCAL")
                 .build();
         jUser.addRole(JMemberRole.USER);
 
