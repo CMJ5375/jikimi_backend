@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,41 +31,43 @@ public class HospitalService {
         String d = normalize(dept);
 
         Page<Object[]> result = hospitalRepository.searchHospitalsWithDistanceNative(
-                k, o, d, emergency, lat, lng, pageable
+                k, d, o, emergency, lat, lng, pageable
         );
 
-        List<HospitalDTO> dtoList = result.getContent().stream()
-                .map(row -> {
-                    // 네이티브 쿼리: [0]=Hospital, 마지막 인덱스 = distance(Double)
-                    Object first = row[0];
-                    if (!(first instanceof Hospital hospital)) {
-                        throw new IllegalStateException(
-                                "Native query did not return Hospital entity at index 0."
-                        );
-                    }
-                    Double distance = toDouble(row[row.length - 1]);
-                    HospitalDTO dto = HospitalDTO.fromEntity(hospital);
-                    if (distance != null) dto.withDistance(round2(distance));
-                    return dto;
-                })
-                .toList();
+        if (result.isEmpty()) return Page.empty(pageable);
+
+        // 병원 ID 목록 추출
+        List<Long> ids = result.getContent().stream()
+                .map(r -> ((Number) r[0]).longValue())
+                .collect(Collectors.toList());
+
+        // ID로 실제 엔티티 배치 조회
+        Map<Long, Hospital> hospitalMap = hospitalRepository.findByHospitalIdIn(ids)
+                .stream().collect(Collectors.toMap(Hospital::getHospitalId, h -> h));
+
+        // DTO 조립
+        List<HospitalDTO> dtoList = result.getContent().stream().map(r -> {
+            Long id = ((Number) r[0]).longValue();
+            Double distance = toDouble(r[1]);
+            Hospital hospital = hospitalMap.get(id);
+            if (hospital == null) return null;
+
+            HospitalDTO dto = HospitalDTO.fromEntity(hospital);
+            dto.setDistance(round2(distance));
+            return dto;
+        }).filter(Objects::nonNull).toList();
 
         return new PageImpl<>(dtoList, pageable, result.getTotalElements());
     }
 
-    /**
-     * 병원 목록 조회 (페이징)
-     * - HospitalRepository.findAll(pageable)는 @EntityGraph로 facility + businessHours 프리패치
-     */
+    // 병원 목록 조회 (페이징)
     @Transactional(readOnly = true)
     public Page<HospitalDTO> getHospitalList(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("hospitalName").ascending());
         return hospitalRepository.findAll(pageable).map(HospitalDTO::fromEntity);
     }
 
-    /**
-     * 병원 상세 조회 (facility + businessHours 프리패치)
-     */
+    // 병원 상세 조회
     @Transactional(readOnly = true)
     public HospitalDTO getHospitalDetail(Long id) {
         Hospital hospital = hospitalRepository.findById(id)
@@ -70,9 +75,7 @@ public class HospitalService {
         return HospitalDTO.fromEntity(hospital);
     }
 
-    /**
-     * 진료과목 목록 (CSV → List<String>)
-     */
+    // 진료과목 목록 (CSV → List<String>)
     @Transactional(readOnly = true)
     public List<String> getDepartments(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
@@ -80,9 +83,7 @@ public class HospitalService {
         return splitCsv(hospital.getDepartmentsCsv());
     }
 
-    /**
-     * 보유 장비/기관자원 목록 (CSV → List<String>)
-     */
+    // 보유 장비/기관자원 목록 (CSV → List<String>)
     @Transactional(readOnly = true)
     public List<String> getInstitutions(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
@@ -90,6 +91,7 @@ public class HospitalService {
         return splitCsv(hospital.getInstitutionsCsv());
     }
 
+    // 진료시간
     @Transactional(readOnly = true)
     public List<FacilityBusinessHourDTO> getFacilityBusinessHoursByHospitalId(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
