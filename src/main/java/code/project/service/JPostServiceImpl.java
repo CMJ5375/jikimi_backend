@@ -1,6 +1,7 @@
 package code.project.service;
 
 import code.project.domain.JPost;
+import code.project.domain.BoardCategory;
 import code.project.dto.PageRequestDTO;
 import code.project.dto.PageResponseDTO;
 import code.project.dto.JPostDTO;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +80,6 @@ public class JPostServiceImpl implements JPostService {
         // post.setIsDeleted(true);
     }
 
-    // 목록(페이징)
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<JPostDTO> getList(PageRequestDTO req) {
@@ -88,13 +89,31 @@ public class JPostServiceImpl implements JPostService {
                 Sort.by(Sort.Direction.DESC, "postId")
         );
 
-        // 커스텀 검색이 있으면 postRepository.search(req)로 교체
-        Page<JPost> page = JPostRepository.findAll(pageable);
+        BoardCategory category = null;
+        if (req.getBoardCategory() != null && !req.getBoardCategory().isBlank()) {
+            try {
+                category = BoardCategory.valueOf(req.getBoardCategory().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // 무시/로그
+            }
+        }
 
-        List<JPostDTO> dtoList = page.getContent()
-                .stream()
+        String q = req.getQ();
+        Page<JPost> page;
+
+        if (q != null && !q.isBlank()) {
+            page = (category == null)
+                    ? JPostRepository.searchAll(q, pageable)
+                    : JPostRepository.searchByBoard(category, q, pageable);
+        } else {
+            page = (category == null)
+                    ? JPostRepository.findByIsDeletedFalse(pageable)
+                    : JPostRepository.findByBoardCategoryAndIsDeletedFalse(category, pageable);
+        }
+
+        var dtoList = page.getContent().stream()
                 .map(this::entityToDTO)
-                .collect(Collectors.toList());
+                .toList();
 
         return PageResponseDTO.<JPostDTO>withAll()
                 .dtoList(dtoList)

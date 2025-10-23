@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface JUserRepository extends JpaRepository<JUser, Long> {
     boolean existsByUsername(String username);
 
-    @EntityGraph(attributePaths = {"memberRoleList"})
+    @EntityGraph(attributePaths = {"JmemberRoleList"})
     @Query("select u from JUser u where u.username = :username")
     JUser getwithRoles(@Param("username") String username);
 
