@@ -121,4 +121,34 @@ public class JPostServiceImpl implements JPostService {
                 .totalCount(page.getTotalElements())
                 .build();
     }
+
+    @Override
+    public JPostDTO entityToDTO(JPost p) {
+        if (p == null) return null;
+
+        String authorName = "익명";
+        if (p.getUser() != null) {
+            var u = p.getUser();
+            if (u.getName() != null && !u.getName().isBlank()) {
+                authorName = u.getName();
+            } else if (u.getUsername() != null && !u.getUsername().isBlank()) {
+                authorName = u.getUsername();
+            } else if (u.getEmail() != null && !u.getEmail().isBlank()) {
+                authorName = u.getEmail().split("@")[0];
+            }
+        }
+
+        return JPostDTO.builder()
+                .postId(p.getPostId())
+                .title(p.getTitle())
+                .content(p.getContent())
+                .boardCategory(p.getBoardCategory())
+                .fileUrl(p.getFileUrl())
+                .likeCount(p.getLikeCount())
+                .createdAt(p.getCreatedAt())
+                .isDeleted(p.getIsDeleted())
+                .userId(p.getUser() != null ? p.getUser().getUserId() : null)
+                .authorName(authorName)
+                .build();
+    }
 }
