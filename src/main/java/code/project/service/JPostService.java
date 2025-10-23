@@ -39,7 +39,7 @@ public interface JPostService {
                 .createdAt(JPost.getCreatedAt())
                 .isDeleted(JPost.getIsDeleted())
                 // 연관 엔티티는 user만 ID로 노출
-                .userId(JPost.getJUser() != null ? JPost.getJUser().getUserId() : null)
+                .userId(JPost.getUser() != null ? JPost.getUser().getUserId() : null)
                 // Enum으로 대체했다면 여기에 .boardType(post.getBoardType()) 등 추가
                 .build();
     }
@@ -60,7 +60,7 @@ public interface JPostService {
                 .isDeleted(dto.getIsDeleted());
 
         if (dto.getUserId() != null) {
-            builder.JUser(JUser.builder().userId(dto.getUserId()).build());
+            builder.user(JUser.builder().userId(dto.getUserId()).build());
         }
 
         return builder.build();

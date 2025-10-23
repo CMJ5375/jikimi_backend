@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Commit
-class JJJUserFavoriteRepositoryTest {
+class JUserFavoriteRepositoryTest {
 
     @Autowired
     JUserRepository JUserRepository;
@@ -30,14 +30,14 @@ class JJJUserFavoriteRepositoryTest {
     @DisplayName("즐겨찾기 저장/조회/존재여부/삭제")
     void favoritesCrud() {
         // 사용자
-        JUser JUser = JUserRepository.save(JUser.builder()
+        JUser user = JUserRepository.save(JUser.builder()
                 .username("favuser")
                 .password("1234")
                 .name("즐겨찾기유저")
                 .email("fav@example.com")
                 .socialType("LOCAL")
                 .build());
-        JUser.addRole(JMemberRole.USER);
+        user.addRole(JMemberRole.USER);
 
         // 기관
         Facility f = facilityRepository.save(Facility.builder()
@@ -50,25 +50,24 @@ class JJJUserFavoriteRepositoryTest {
 
         // 즐겨찾기 저장 (복합키)
         JUserFavorite uf = new JUserFavorite();
-        uf.setJUser(JUser);
+        uf.setUser(user);
         uf.setFacility(f);
-        uf.setId(new JUserFavoriteId(JUser.getUserId(), f.getFacilityId()));
+        uf.setId(new JUserFavoriteId(user.getUserId(), f.getFacilityId()));
 
         JUserFavoriteRepository.save(uf);
 
         // 목록 조회
-        List<JUserFavorite> list = JUserFavoriteRepository.findById_UserId(JUser.getUserId());
+        List<JUserFavorite> list = JUserFavoriteRepository.findById_UserId(user.getUserId());
         assertThat(list).hasSize(1);
 
         // 존재 여부
         boolean exists = JUserFavoriteRepository.existsById_UserIdAndId_FacilityId(
-                JUser.getUserId(), f.getFacilityId());
+                user.getUserId(), f.getFacilityId());
         assertThat(exists).isTrue();
 
         // 삭제
 //        UserFavoriteId id = new UserFavoriteId(user.getUserId(), f.getFacilityId());
 //        userFavoriteRepository.deleteById(id);
 //        assertThat(userFavoriteRepository.findById(id)).isEmpty();
-
     }
 }

@@ -1,6 +1,5 @@
 package code.project.controller;
 
-import code.project.domain.*;
 import code.project.dto.HospitalDTO;
 import code.project.dto.FacilityBusinessHourDTO;
 import code.project.service.HospitalService;
@@ -18,7 +17,7 @@ public class HospitalController {
 
     private final HospitalService hospitalService;
 
-    //병원 검색 API
+    // 병원 검색 API (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실)
     @GetMapping("/search")
     public Page<HospitalDTO> searchHospitals(
             @RequestParam(required = false) String keyword,
@@ -47,22 +46,21 @@ public class HospitalController {
         return ResponseEntity.ok(hospitalService.getHospitalDetail(id));
     }
 
-    // 특정 병원의 진료과목 목록 조회
+    // 특정 병원의 진료과목 목록 (CSV → List<String>)
     @GetMapping("/{id}/departments")
-    public ResponseEntity<List<HospitalDepartment>> getDepartments(@PathVariable Long id) {
+    public ResponseEntity<List<String>> getDepartments(@PathVariable Long id) {
         return ResponseEntity.ok(hospitalService.getDepartments(id));
     }
 
-    // ✅ 특정 병원의 요일별 영업시간 조회(= Facility의 영업시간)
+    // 특정 병원의 요일별 영업시간 (= Facility의 영업시간)
     @GetMapping("/{id}/business-hours")
     public ResponseEntity<List<FacilityBusinessHourDTO>> getBusinessHours(@PathVariable Long id) {
         return ResponseEntity.ok(hospitalService.getFacilityBusinessHoursByHospitalId(id));
     }
 
-    // 특정 병원의 의료자원 목록 조회
+    // 특정 병원의 의료자원 목록 (CSV → List<String>)
     @GetMapping("/{id}/institutions")
-    public ResponseEntity<List<HospitalInstitution>> getInstitutions(@PathVariable Long id) {
+    public ResponseEntity<List<String>> getInstitutions(@PathVariable Long id) {
         return ResponseEntity.ok(hospitalService.getInstitutions(id));
     }
-
 }

@@ -3,6 +3,7 @@ package code.project.dto;
 import code.project.domain.Hospital;
 import lombok.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,17 +13,16 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 public class HospitalDTO {
-
     private Long hospitalId;
     private String hospitalName;
     private boolean hasEmergency;
-    private Double distance;
+    private Double distance; // 선택적
 
-    private FacilityDTO facility; // 상위 facility 정보
-    private List<HospitalDepartmentDTO> departments;
-    private List<HospitalInstitutionDTO> institutions;
+    private FacilityDTO facility;
+    private List<String> departments;   // 유지
+    private List<String> institutions; // 유지
 
-    // Facility의 영업시간도 함께 포함하고 싶다면 ↓ 추가
+    // 중복 가능성: FacilityDTO.businessHours에 이미 포함되므로 이 필드는 보통 제거 권장
     private List<FacilityBusinessHourDTO> facilityBusinessHours;
 
     public static HospitalDTO fromEntity(Hospital entity) {
@@ -31,20 +31,25 @@ public class HospitalDTO {
                 .hospitalName(entity.getHospitalName())
                 .hasEmergency(entity.isHasEmergency())
                 .facility(FacilityDTO.fromEntity(entity.getFacility()))
-                .departments(entity.getDepartments()
-                        .stream()
-                        .map(HospitalDepartmentDTO::fromEntity)
-                        .collect(Collectors.toList()))
-                .institutions(entity.getInstitutions()
-                        .stream()
-                        .map(HospitalInstitutionDTO::fromEntity)
-                        .collect(Collectors.toList()))
-                // 병원/약국 공통 영업시간은 Facility에서 가져오기
-                .facilityBusinessHours(entity.getFacility().getBusinessHours()
-                        .stream()
-                        .map(FacilityBusinessHourDTO::fromEntity)
-                        .collect(Collectors.toList()))
+                .departments(splitCsv(entity.getDepartmentsCsv()))
+                .institutions(splitCsv(entity.getInstitutionsCsv()))
+                // 필요 시 중복 제거: 아래 줄은 선택
+                .facilityBusinessHours(
+                        entity.getFacility().getBusinessHours().stream()
+                                .map(FacilityBusinessHourDTO::fromEntity)
+                                .collect(Collectors.toList())
+                )
                 .build();
+    }
+
+    // 같은 클래스 내부에 헬퍼 추가
+    private static List<String> splitCsv(String csv) {
+        if (csv == null || csv.isBlank()) return List.of();
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public HospitalDTO withDistance(Double distanceKm) {
@@ -52,3 +57,4 @@ public class HospitalDTO {
         return this;
     }
 }
+

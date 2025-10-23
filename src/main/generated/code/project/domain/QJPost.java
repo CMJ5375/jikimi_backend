@@ -32,13 +32,13 @@ public class QJPost extends EntityPathBase<JPost> {
 
     public final BooleanPath isDeleted = createBoolean("isDeleted");
 
-    public final QJUser JUser;
-
     public final NumberPath<Integer> likeCount = createNumber("likeCount", Integer.class);
 
     public final NumberPath<Long> postId = createNumber("postId", Long.class);
 
     public final StringPath title = createString("title");
+
+    public final QJUser user;
 
     public QJPost(String variable) {
         this(JPost.class, forVariable(variable), INITS);
@@ -58,7 +58,7 @@ public class QJPost extends EntityPathBase<JPost> {
 
     public QJPost(Class<? extends JPost> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.JUser = inits.isInitialized("JUser") ? new QJUser(forProperty("JUser")) : null;
+        this.user = inits.isInitialized("user") ? new QJUser(forProperty("user")) : null;
     }
 
 }

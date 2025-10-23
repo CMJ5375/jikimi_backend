@@ -39,7 +39,7 @@ public class JPostServiceImpl implements JPostService {
 
         // User 연관만 세팅 (프록시)
         if (dto.getUserId() != null) {
-            JPost.setJUser(JUserRepository.getReferenceById(dto.getUserId()));
+            JPost.setUser(JUserRepository.getReferenceById(dto.getUserId()));
         }
 
         JPost saved = JPostRepository.save(JPost);
@@ -61,7 +61,7 @@ public class JPostServiceImpl implements JPostService {
 
         // User 변경이 필요한 경우에만
         if (dto.getUserId() != null) {
-            JPost.setJUser(JUserRepository.getReferenceById(dto.getUserId()));
+            JPost.setUser(JUserRepository.getReferenceById(dto.getUserId()));
         }
 
         // @Transactional 더티 체킹으로 반영되지만 명시 save도 OK
