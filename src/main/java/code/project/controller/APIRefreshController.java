@@ -18,7 +18,11 @@ import java.util.Map;
 public class APIRefreshController {
 
     @RequestMapping("/project/user/refresh")
-    public Map<String, Object> refresh(@RequestHeader("Authorization") String authHeader, @RequestParam("refreshToken") String refreshToken) {
+    public Map<String, Object> refresh(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam("refreshToken") String refreshToken
+    )
+    {
         //refreshToken이 없음
         if(refreshToken == null) {
             throw new CustomJWTException("NULL_REFRASH");
@@ -43,10 +47,7 @@ public class APIRefreshController {
         //새로운 accessToken발행
         String newAccessToken = JWTUtil.generateToken(claims, 10);
 
-        //refreshToken의 시간을 검사해서 다시 발행할지, 아닐지를 결정
-        String newRefreshToken =  checkTime((Integer)claims.get("exp")) == true? JWTUtil.generateToken(claims, 60*24) : refreshToken;
-
-        return Map.of("accessToken", newAccessToken, "refreshToken", newRefreshToken);
+        return Map.of("accessToken", newAccessToken, "refreshToken", refreshToken);
     }
 
     private boolean checkTime(Integer exp) {

@@ -25,9 +25,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JUserServiceImpl implements JUserService {
 
-    private final JUserRepository JUserRepository;
+    private final JUserRepository jUserRepository;
 
     private final PasswordEncoder passwordEncoder;
+
 
     @Override
     public JUserDTO getKakaoUser(String accessToken) {
@@ -35,14 +36,14 @@ public class JUserServiceImpl implements JUserService {
 
         log.info("가져온 nickname : {}", kakaoUserInfo);
 
-        Optional<JUser> result = JUserRepository.getCodeUserByUsername(kakaoUserInfo.getUsername());
+        Optional<JUser> result = jUserRepository.getCodeUserByUsername(kakaoUserInfo.getUsername());
         //기존회원
         if(result.isPresent()) {
             JUserDTO JUserDTO = entityToDTO(result.get());
             return JUserDTO;
         }
         JUser socialJUser = makeSocialUser(kakaoUserInfo.getUsername(), kakaoUserInfo.getName());
-        JUserRepository.save(socialJUser);
+        jUserRepository.save(socialJUser);
         JUserDTO JUserDTO = entityToDTO(socialJUser);
         return JUserDTO;
     }
@@ -114,5 +115,27 @@ public class JUserServiceImpl implements JUserService {
                 .build();
         user.addRole(JMemberRole.USER);
         return user;
+    }
+
+//    회원가입 로직
+    @Override
+    public String register(JUserDTO jUserDTO) {
+        // 사용자명 중복 검사
+        if(jUserRepository.existsByUsername(jUserDTO.getUsername())) {
+            return "이미 존재하는 회원입니다.";
+        }
+
+        JUser jUser = JUser.builder()
+                .username(jUserDTO.getUsername())
+                .email(jUserDTO.getEmail())
+                .name(jUserDTO.getName())
+                .password(passwordEncoder.encode(jUserDTO.getPassword()))
+                .socialType("LOCAL")
+                .build();
+        jUser.addRole(JMemberRole.USER);
+
+        jUserRepository.save(jUser);
+
+        return "회원가입 성공";
     }
 }
