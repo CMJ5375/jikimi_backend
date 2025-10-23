@@ -22,5 +22,5 @@ public class JPostDTO {
 
         // 연관 객체는 ID나 이름만 노출
         private Long userId;
-        //private String userName; //＊
+        private String authorName;
 }

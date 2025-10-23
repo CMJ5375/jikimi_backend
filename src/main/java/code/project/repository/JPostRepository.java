@@ -1,15 +1,40 @@
 package code.project.repository;
 
 import code.project.domain.JPost;
+import code.project.domain.BoardCategory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface JPostRepository extends JpaRepository<JPost, Long> {
 
-    // 작성자별 게시글 조회
     List<JPost> findByUser_UserId(Long userId);
 
-    // 삭제되지 않은 게시글만 조회
-    List<JPost> findByIsDeletedFalse();
+    Page<JPost> findByIsDeletedFalse(Pageable pageable);
+
+    // 타입 바꾸기
+    Page<JPost> findByBoardCategoryAndIsDeletedFalse(BoardCategory boardCategory, Pageable pageable);
+
+    @Query("""
+           select p from JPost p
+           where p.isDeleted = false
+             and (p.title like concat('%', :q, '%')
+              or p.content like concat('%', :q, '%'))
+           """)
+    Page<JPost> searchAll(@Param("q") String q, Pageable pageable);
+
+    @Query("""
+           select p from JPost p
+           where p.isDeleted = false
+             and p.boardCategory = :boardCategory
+             and (p.title like concat('%', :q, '%')
+              or p.content like concat('%', :q, '%'))
+           """)
+    Page<JPost> searchByBoard(@Param("boardCategory") BoardCategory boardCategory, // 👈 타입 변경
+                              @Param("q") String q,
+                              Pageable pageable);
 }
