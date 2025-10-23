@@ -8,8 +8,11 @@ import java.util.stream.Collectors;
 
 @Transactional
 public interface JUserService {
-
+    // 카카오 회원가입 로직
     JUserDTO getKakaoUser(String accessToken);
+
+    //회원가입 로직
+    String register(JUserDTO jUserDTO);
 
     default JUserDTO entityToDTO(JUser JUser) {
 

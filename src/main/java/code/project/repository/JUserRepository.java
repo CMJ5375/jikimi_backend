@@ -9,11 +9,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface JUserRepository extends JpaRepository<JUser, Long> {
+    // 이미 존재하는 회원인지 확인
     boolean existsByUsername(String username);
 
-    @EntityGraph(attributePaths = {"memberRoleList"})
+    @EntityGraph(attributePaths = {"JMemberRoleList"})
     @Query("select u from JUser u where u.username = :username")
     JUser getwithRoles(@Param("username") String username);
 
     Optional<JUser> getCodeUserByUsername(String username);
+
 }

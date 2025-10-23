@@ -38,6 +38,10 @@ public class JWTCheckFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("doFilterInternal : 검증중^^");
 
+        String requestURI = request.getRequestURI();
+        if(requestURI.equals("/project/register")) {
+            return;
+        }
         String authHeaderStr = request.getHeader("Authorization");
 
         try {
