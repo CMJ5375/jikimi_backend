@@ -26,7 +26,7 @@ public class QFacilityBusinessHour extends EntityPathBase<FacilityBusinessHour> 
 
     public final TimePath<java.time.LocalTime> closeTime = createTime("closeTime", java.time.LocalTime.class);
 
-    public final EnumPath<Bizday> dayOfWeek = createEnum("dayOfWeek", Bizday.class);
+    public final StringPath days = createString("days");
 
     public final QFacility facility;
 
