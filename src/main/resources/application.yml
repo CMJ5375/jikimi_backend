@@ -22,3 +22,5 @@ logging.level:
   org.hibernate.SQL: debug #??? sql? ??? ??? ????.
   org.hibernate.orm.jdbc.bind: trace #??? ?? 3.x, hibernate6
   org.springframework.security.web: trace
+  org.springframework.web: debug
+  org.springframework.http.converter: trace

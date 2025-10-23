@@ -12,56 +12,69 @@ import java.util.Map;
 
 @Slf4j
 public class JWTUtil {
-    private static String key = "1234567890123456789012345678901234567890";
 
-    public static String generateToken(Map<String,Object> valueMap, int min) {
-        SecretKey key = null;
+    private static final String SECRET_KEY = "1234567890123456789012345678901234567890";
 
+    // ✅ 토큰 생성
+    public static String generateToken(Map<String, Object> valueMap, int minutes) {
         try {
-            key = Keys.hmacShaKeyFor(JWTUtil.key.getBytes("UTF-8"));
+            SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes("UTF-8"));
+
+            return Jwts.builder()
+                    .setHeader(Map.of("typ", "JWT"))
+                    .setClaims(valueMap)
+                    .setIssuedAt(Date.from(ZonedDateTime.now().toInstant()))
+                    .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(minutes).toInstant()))
+                    .signWith(key)
+                    .compact();
+
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-
-        String jwtStr = Jwts.builder()
-                .setHeader(Map.of("typ", "JWT"))
-                .setClaims(valueMap)
-                .setIssuedAt(Date.from(ZonedDateTime.now().toInstant()))
-                .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(min).toInstant()))
-                .signWith(key)
-                .compact();
-
-        return jwtStr;
     }
 
-    //검증을 위한 validateToken()
-    // 입력값 token은 검증대상의 JWT문자열
-    public static Map<String, Object> validateToken(String token){
-        //토큰의 클레임 데이터를 저장할 변수
-        Map<String, Object> claim = null;
-        //비밀키
-        SecretKey key = null;
+    // ✅ 토큰 검증 및 클레임 반환
+    public static Map<String, Object> validateToken(String token) {
         try {
-            //JWT 생성 시 사용한 키와 동일해야 함
-            key = Keys.hmacShaKeyFor(JWTUtil.key.getBytes("UTF-8"));
+            SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes("UTF-8"));
 
-            claim = Jwts.parserBuilder()   // JWT 문자열을 파싱하는 객체를 빌드
-                    .setSigningKey(key) //JWT의 서명을 검증하기 위해 사용할 비밀 키를 설정
+            // ⚡ 만료되지 않은 정상 토큰 → 정상 claims 반환
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token) //입력받은 JWT 문자열을 파싱하여 유효성을 확인, 서명이 유효한지, 토큰이 만료되지 않았는지 확인
-                    .getBody();  //검증이 성공하면 토큰의 페이로드(Payload) 부분에 포함된 클레임 데이터를 반환
-        } catch(MalformedJwtException malformedJwtException){
-            throw new CustomJWTException("MalFormed"); //토큰이 잘못된 형식으로 작성된 경우
-        }catch(ExpiredJwtException expiredJwtException){
-            throw new CustomJWTException("Expired");  //토큰이 만료되었거나, 만료 시간이 잘못된 경우
-        }catch(InvalidClaimException invalidClaimException){
-            throw new CustomJWTException("Invalid");  //JWT 처리 중, 클레임 값이 특정 검증 조건을 충족하지 않을 때
-        }catch(JwtException jwtException){
-            throw new CustomJWTException("JWTError"); //JWT 생성, 검증, 또는 파싱 과정에서 발생할 수 있는 다양한 문제
-        }catch(Exception e){
-            throw new CustomJWTException("Error");
+                    .parseClaimsJws(token)
+                    .getBody();
+
+        } catch (ExpiredJwtException e) {
+            // ⚡ 만료된 토큰도 claims를 꺼낼 수 있음 → 재발급용으로 사용
+            log.warn("토큰 만료됨 (만료 시간: {})", e.getClaims().getExpiration());
+            throw new CustomJWTException("Expired", e);
+        } catch (MalformedJwtException e) {
+            throw new CustomJWTException("MalFormed", e);
+        } catch (InvalidClaimException e) {
+            throw new CustomJWTException("Invalid", e);
+        } catch (JwtException e) {
+            throw new CustomJWTException("JWTError", e);
+        } catch (Exception e) {
+            throw new CustomJWTException("Error", e);
         }
-        return claim;   //클레임 데이터는 Map<String, Object>로 반환
     }
 
+    // ✅ 만료된 토큰에서 클레임 추출 (refresh 용)
+    public static Map<String, Object> getClaimsFromExpiredToken(String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes("UTF-8"));
+
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            // ✅ 만료된 경우에도 claims는 유효함
+            return e.getClaims();
+        } catch (Exception e) {
+            throw new CustomJWTException("InvalidToken", e);
+        }
+    }
 }
