@@ -5,6 +5,7 @@ import code.project.domain.BoardCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,6 +19,11 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
 
     // 타입 바꾸기
     Page<JPost> findByBoardCategoryAndIsDeletedFalse(BoardCategory boardCategory, Pageable pageable);
+
+    //조회수
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update JPost p set p.viewCount = p.viewCount + 1 where p.postId = :id")
+    int incrementView(@Param("id") Long id);
 
     @Query("""
            select p from JPost p

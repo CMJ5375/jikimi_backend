@@ -23,6 +23,9 @@ public interface JPostService {
     // 페이징 목록
     PageResponseDTO<JPostDTO> getList(PageRequestDTO pageRequestDTO);
 
+    // 조회수
+    void incrementView(Long id);
+
     // ====== Mapper ======
 
     // Entity -> DTO
@@ -46,6 +49,7 @@ public interface JPostService {
                 .content(p.getContent())
                 .fileUrl(p.getFileUrl())
                 .likeCount(p.getLikeCount())
+                .viewCount(p.getViewCount())
                 .createdAt(p.getCreatedAt())
                 .isDeleted(p.getIsDeleted())
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)
@@ -65,6 +69,7 @@ public interface JPostService {
                 .content(dto.getContent())
                 .fileUrl(dto.getFileUrl())
                 .likeCount(dto.getLikeCount())
+                .viewCount(dto.getViewCount())
                 .createdAt(dto.getCreatedAt())
                 .isDeleted(dto.getIsDeleted());
 

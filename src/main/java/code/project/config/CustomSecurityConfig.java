@@ -68,7 +68,7 @@ public class CustomSecurityConfig {
         //모든 Origin을 허용
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         //허용할 HTTP 메서드를 설정
-        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         //허용할 HTTP 요청 헤더를 설정
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         //클라이언트가 **자격 증명(쿠키, 인증 정보 등)**을 포함한 요청을 보낼 수 있도록 허용

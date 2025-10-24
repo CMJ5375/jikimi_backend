@@ -7,6 +7,7 @@ import code.project.dto.PageResponseDTO;
 import code.project.dto.JPostDTO;
 import code.project.repository.JPostRepository;
 import code.project.repository.JUserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,15 @@ public class JPostServiceImpl implements JPostService {
         // post.setIsDeleted(true);
     }
 
+    //조회수
+    @Override
+    public void incrementView(Long id) {
+        int updated = JPostRepository.incrementView(id);
+        if (updated == 0) {
+            throw new EntityNotFoundException("Post not found id=" + id);
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<JPostDTO> getList(PageRequestDTO req) {
@@ -145,6 +155,7 @@ public class JPostServiceImpl implements JPostService {
                 .boardCategory(p.getBoardCategory())
                 .fileUrl(p.getFileUrl())
                 .likeCount(p.getLikeCount())
+                .viewCount(p.getViewCount())
                 .createdAt(p.getCreatedAt())
                 .isDeleted(p.getIsDeleted())
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)

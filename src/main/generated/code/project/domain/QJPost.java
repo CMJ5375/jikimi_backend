@@ -40,6 +40,8 @@ public class QJPost extends EntityPathBase<JPost> {
 
     public final QJUser user;
 
+    public final NumberPath<Integer> viewCount = createNumber("viewCount", Integer.class);
+
     public QJPost(String variable) {
         this(JPost.class, forVariable(variable), INITS);
     }
