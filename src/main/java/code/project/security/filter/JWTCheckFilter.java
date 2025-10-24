@@ -39,11 +39,17 @@ public class JWTCheckFilter extends OncePerRequestFilter {
         log.info("doFilterInternal : 검증중^^");
 
         String requestURI = request.getRequestURI();
-        if(requestURI.equals("/project/register")) {
+        if(requestURI.equals("/project/register") || requestURI.equals("/project/user/modify")) {
             filterChain.doFilter(request, response);
             return;
         }
+
         String authHeaderStr = request.getHeader("Authorization");
+
+        if (authHeaderStr == null || !authHeaderStr.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return; // 헤더 없으면 그냥 통과
+        }
 
         try {
             String accessToken = authHeaderStr.substring(7);
