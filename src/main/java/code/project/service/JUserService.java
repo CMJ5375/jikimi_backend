@@ -2,6 +2,7 @@ package code.project.service;
 
 import code.project.domain.JUser;
 import code.project.dto.JUserDTO;
+import code.project.dto.JUserModifyDTO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
@@ -13,6 +14,8 @@ public interface JUserService {
 
     //회원가입 로직
     String register(JUserDTO jUserDTO);
+
+    void modifyUser(JUserModifyDTO jUserModifyDTO);
 
     default JUserDTO entityToDTO(JUser JUser) {
 
