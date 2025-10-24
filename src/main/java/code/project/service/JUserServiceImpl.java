@@ -2,6 +2,7 @@ package code.project.service;
 
 import code.project.domain.JMemberRole;
 import code.project.domain.JUser;
+import code.project.dto.JUserModifyDTO;
 import code.project.dto.KakaoUserInfoDTO;
 import code.project.dto.JUserDTO;
 import code.project.repository.JUserRepository;
@@ -109,8 +110,8 @@ public class JUserServiceImpl implements JUserService {
         JUser user = JUser.builder()
                 .username(username)
                 .password(passwordEncoder.encode(tempPassword))
-                .name(name)
-                .email(username)
+                .name(username)
+                .email(name)
                 .socialType("KAKAO")
                 .build();
         user.addRole(JMemberRole.USER);
@@ -137,5 +138,21 @@ public class JUserServiceImpl implements JUserService {
         jUserRepository.save(jUser);
 
         return "회원가입 성공";
+    }
+
+//    회원 정보 수정 로직
+    @Override
+    public void modifyUser(JUserModifyDTO jUserModifyDTO) {
+
+        log.info("아이디 : {}", jUserModifyDTO.getUsername());
+
+        Optional<JUser> result = jUserRepository.getCodeUserByUsername(jUserModifyDTO.getUsername());
+
+        JUser jUser = result.orElseThrow();
+        jUser.setPassword(passwordEncoder.encode(jUserModifyDTO.getPassword()));
+        jUser.setEmail(jUserModifyDTO.getEmail());
+        jUser.setAge(jUserModifyDTO.getAge());
+
+        jUserRepository.save(jUser);
     }
 }

@@ -2,6 +2,7 @@ package code.project.controller;
 
 import code.project.domain.JUser;
 import code.project.dto.JUserDTO;
+import code.project.dto.JUserModifyDTO;
 import code.project.service.JUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,5 +34,18 @@ public class JUserController {
 
         // 정상 가입 시
         return ResponseEntity.ok(result);
+    }
+
+    //회원정보 수정
+    @PutMapping("/project/user/modify/{username}")
+    public Map<String, String> modify(
+            @RequestBody JUserModifyDTO jUserModifyDTO,
+            @PathVariable("username") String username
+    ) {
+        jUserModifyDTO.setUsername(username);
+        log.info("member modify: {}", jUserModifyDTO);
+        jUserService.modifyUser(jUserModifyDTO);
+
+        return Map.of("result", "modify");
     }
 }
