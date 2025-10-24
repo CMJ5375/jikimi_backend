@@ -36,7 +36,7 @@ public class FacilityController {
         return ResponseEntity.ok(facilityService.getFacility(id));
     }
 
-    // ✅ 단일 시설의 요일별 영업시간 조회
+    // 단일 시설의 요일별 영업시간 조회
     @GetMapping("/{id}/business-hours")
     public ResponseEntity<List<FacilityBusinessHourDTO>> getFacilityBusinessHours(@PathVariable Long id) {
         return ResponseEntity.ok(facilityService.getBusinessHoursByFacilityId(id));
