@@ -59,6 +59,9 @@ public class JPost {
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isDeleted;
 
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer viewCount;
+
     // 생성시 자동 설정되게
     @PrePersist
     void onCreate() {
