@@ -39,6 +39,14 @@ public class CustomSecurityConfig {
         //CSRF 사용하지 않음
         http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
 
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/account/**").permitAll()
+                .requestMatchers("/api/password/**").permitAll()
+                .requestMatchers("/project/register").permitAll()
+                .requestMatchers("/project/user/**", "/project/hospital/**", "/project/pharmacy/**", "/project/facility/**", "/error").permitAll()
+                .anyRequest().authenticated()
+        );
+
         http.formLogin(config -> {
             config.loginPage("/project/user/login");
             config.successHandler(new APILoginSuccessHandler());

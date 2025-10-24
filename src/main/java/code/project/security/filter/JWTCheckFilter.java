@@ -23,68 +23,78 @@ public class JWTCheckFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
+        String method = request.getMethod();
 
-        // 로그인 필요 없는 공개 경로 설정
-        if (path.startsWith("/project/user/") ||       // 회원가입 / 로그인 등
-                path.startsWith("/project/hospital/") ||   // 병원 검색 / 상세
-                path.startsWith("/project/pharmacy/") ||   // 약국 검색 / 상세
-                path.startsWith("/project/facility/")) {   // 시설 공통 정보 (필요 시)
-            return true;  //이 경로들은 JWT 필터 통과 (검증 안 함)
+        // 1) CORS Preflight는 무조건 패스
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            return true;
+        }
+
+        // 2) 로그인 불필요 공개 경로 (필터 자체 스킵)
+        if (path.startsWith("/api/account/") ||     // 아이디 찾기
+            path.startsWith("/api/password/") ||    // 비밀번호 찾기/변경
+            path.equals("/project/register") ||     // 회원가입
+            path.startsWith("/project/user/") ||    // 로그인/로그아웃 등
+            path.startsWith("/project/hospital/") ||
+            path.startsWith("/project/pharmacy/") ||
+            path.startsWith("/project/facility/") ||
+            path.startsWith("/error")) {
+            return true;
         }
         return false;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("doFilterInternal : 검증중^^");
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-        String requestURI = request.getRequestURI();
-        if(requestURI.equals("/project/register") || requestURI.equals("/project/user/modify")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        final String authHeaderStr = request.getHeader("Authorization");
 
-        String authHeaderStr = request.getHeader("Authorization");
-
+        // Authorization 헤더 없거나 Bearer 아니면 그대로 통과 (인가 규칙에서 후단 처리)
         if (authHeaderStr == null || !authHeaderStr.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
-            return; // 헤더 없으면 그냥 통과
+            return;
         }
 
         try {
             String accessToken = authHeaderStr.substring(7);
             Map<String, Object> claims = JWTUtil.validateToken(accessToken);
-
-            log.info("JWT claims" + claims);
+            log.debug("JWT claims: {}", claims);
 
             String username = (String) claims.get("username");
             String password = (String) claims.get("password");
-            String name = (String) claims.get("name");
-            String address = (String) claims.get("address");
-            Integer age = (Integer) claims.get("age");
-            String email = (String) claims.get("email");
+            String name     = (String) claims.get("name");
+            String address  = (String) claims.get("address");
+            String email    = (String) claims.get("email");
+            @SuppressWarnings("unchecked")
             List<String> roleNames = (List<String>) claims.get("roleNames");
 
-            JUserDTO JUserDTO = new JUserDTO(username, password, name, address, age, email, roleNames);
+            // age 안전 캐스팅
+            Integer age = null;
+            Object ageObj = claims.get("age");
+            if (ageObj instanceof Number) {
+                age = ((Number) ageObj).intValue();
+            }
 
-            log.info("멤버? {}", JUserDTO);
-            log.info("멤버 권한? {}", JUserDTO.getAuthorities());
+            // 이미 인증돼 있지 않을 때만 세팅
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                JUserDTO principal = new JUserDTO(username, password, name, address, age, email, roleNames);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
 
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(JUserDTO, password, JUserDTO.getAuthorities());
+            filterChain.doFilter(request, response);
 
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-            //성공하면 다음목적지를 부른다.
-            filterChain.doFilter(request,response); //통과
         } catch (Exception e) {
-            log.info("에러 {}", e.getMessage());
-            Gson gson = new Gson();
-            String msg = gson.toJson(Map.of("error", "ERROR_ACCESS_TOKEN"));
-            response.setContentType("application/json");
-            PrintWriter printWriter = response.getWriter();
-            printWriter.println(msg);
-            printWriter.close();
+            log.info("JWT validation error: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            String msg = new Gson().toJson(Map.of("error", "ERROR_ACCESS_TOKEN"));
+            try (PrintWriter out = response.getWriter()) {
+                out.println(msg);
+            }
         }
-
     }
 }
