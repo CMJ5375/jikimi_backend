@@ -32,8 +32,6 @@ public class QFacility extends EntityPathBase<Facility> {
 
     public final StringPath name = createString("name");
 
-    public final StringPath orgType = createString("orgType");
-
     public final StringPath phone = createString("phone");
 
     public final StringPath regionCode = createString("regionCode");

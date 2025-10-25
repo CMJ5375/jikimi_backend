@@ -26,6 +26,9 @@ public interface JPostService {
     // 조회수
     void incrementView(Long id);
 
+    // 좋아요
+    void incremLike(Long id);
+
     // ====== Mapper ======
 
     // Entity -> DTO

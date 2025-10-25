@@ -66,4 +66,16 @@ public class JPostController {
 
         return ResponseEntity.ok(Map.of("viewCount", updated));
     }
+
+    //좋아요
+    @PatchMapping("/{id}/likes")
+    public ResponseEntity<Map<String, Object>> incrementLikes(@PathVariable Long id) {
+        JPostService.incremLike(id);
+
+        int updated = JPostRepository.findById(id)
+                .map(JPost::getLikeCount)
+                .orElse(0);
+
+        return ResponseEntity.ok(Map.of("likeCount", updated));
+    }
 }

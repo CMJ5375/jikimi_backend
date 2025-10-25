@@ -81,10 +81,19 @@ public class JPostServiceImpl implements JPostService {
         // post.setIsDeleted(true);
     }
 
-    //조회수
     @Override
     public void incrementView(Long id) {
+        System.out.println(">>> incrementView called for post " + id);
         int updated = JPostRepository.incrementView(id);
+        if (updated == 0) {
+            throw new EntityNotFoundException("Post not found id=" + id);
+        }
+    }
+
+    //좋아요
+    @Override
+    public void incremLike(Long id) {
+        int updated = JPostRepository.incrementLike(id);
         if (updated == 0) {
             throw new EntityNotFoundException("Post not found id=" + id);
         }
