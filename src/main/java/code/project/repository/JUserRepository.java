@@ -18,4 +18,5 @@ public interface JUserRepository extends JpaRepository<JUser, Long> {
 
     Optional<JUser> getCodeUserByUsername(String username);
 
+    Optional<JUser> findByUsername(String username);
 }
