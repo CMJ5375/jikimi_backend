@@ -17,8 +17,19 @@ public interface JPostService {
     // 수정
     void modify(JPostDTO dto);
 
+    // 새 수정: 로그인 사용자 정보 받아서 권한 체크
+    void modifyOwned(Long postId,
+                     String loginUsername,
+                     boolean isAdmin,
+                     JPostDTO dto);
+
     // 삭제(소프트 딜리트라면 isDeleted = true 처리)
     void remove(Long postId);
+
+    // 새 삭제: 작성자 or 관리자만 허용
+    void removeWithAuth(Long postId,
+                        String loginUsername,
+                        boolean isAdmin);
 
     // 페이징 목록
     PageResponseDTO<JPostDTO> getList(PageRequestDTO pageRequestDTO);
@@ -60,6 +71,7 @@ public interface JPostService {
                 .isDeleted(p.getIsDeleted())
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)
                 .authorName(authorName) // 추가
+                .authorUsername(p.getUser() != null ? p.getUser().getUsername() : null) //(프론트에서 버튼 노출 조건 검사용)
                 .build();
     }
 

@@ -42,14 +42,23 @@ public class JPostServiceImpl implements JPostService {
     // 등록
     @Override
     public Long register(JPostDTO dto) {
-        JPost JPost = dtoToEntity(dto);
 
-        // User 연관만 세팅 (프록시)
-        if (dto.getUserId() != null) {
-            JPost.setUser(jUserRepository.getReferenceById(dto.getUserId()));
-        }
+        // username으로 유저 찾기
+        JUser user = jUserRepository.findByUsername(dto.getAuthorUsername())
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + dto.getAuthorUsername()));
 
-        JPost saved = jPostRepository.save(JPost);
+        JPost entity = JPost.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .boardCategory(dto.getBoardCategory())
+                .fileUrl(dto.getFileUrl())
+                .likeCount(0)
+                .viewCount(0)
+                .isDeleted(false)
+                .user(user)
+                .build();
+
+        JPost saved = jPostRepository.save(entity);
         return saved.getPostId();
     }
 
@@ -85,6 +94,69 @@ public class JPostServiceImpl implements JPostService {
         // post.setIsDeleted(true);
     }
 
+    //새 수정(글쓴이만 삭제.수정/관리자만 삭제가능)
+    @Override
+    public void modifyOwned(Long postId,
+                            String loginUsername,
+                            boolean isAdmin,
+                            JPostDTO dto) {
+
+        // 글 찾기
+        JPost post = jPostRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("Post not found: " + postId));
+
+        // 글쓴이 username
+        String ownerUsername = post.getUser().getUsername();
+
+        // 수정은 "작성자 본인만" 가능. (관리자라도 본인 글 아니면 수정 금지)
+        if (!ownerUsername.equals(loginUsername)) {
+            throw new SecurityException("수정 권한이 없습니다.");
+        }
+
+        // 수정 가능한 필드 반영 (null이면 무시)
+        if (dto.getTitle() != null) {
+            post.setTitle(dto.getTitle());
+        }
+        if (dto.getContent() != null) {
+            post.setContent(dto.getContent());
+        }
+        if (dto.getFileUrl() != null) {
+            post.setFileUrl(dto.getFileUrl());
+        }
+        // likeCount, isDeleted 같은 건 일반 수정 화면에서 바꿀 일 없으면 안 건드려도 돼
+        // post.setLikeCount(...) 이런 건 빼도 됨
+
+        // 변경 저장
+        jPostRepository.save(post);
+    }
+
+    //새 삭제(글쓴이만 삭제.수정/관리자만 삭제가능)
+    @Override
+    public void removeWithAuth(Long postId,
+                               String loginUsername,
+                               boolean isAdmin) {
+
+        JPost post = jPostRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("Post not found: " + postId));
+
+        String ownerUsername = post.getUser().getUsername();
+
+        // 삭제는 두 경우 허용:
+        // 1) 내가 쓴 글이면 삭제 가능
+        // 2) 관리자는 누구 글이든 삭제 가능
+        if (!(ownerUsername.equals(loginUsername) || isAdmin)) {
+            throw new SecurityException("삭제 권한이 없습니다.");
+        }
+
+        // 하드 삭제
+        jPostRepository.delete(post);
+
+        // 만약 소프트 삭제 쓰고 싶으면 위 줄 대신:
+        // post.setIsDeleted(true);
+        // JPostRepository.save(post);
+    }
+
+    //조회
     @Override
     public void incrementView(Long id) {
         System.out.println(">>> incrementView called for post " + id);
@@ -227,6 +299,7 @@ public class JPostServiceImpl implements JPostService {
                 .isDeleted(p.getIsDeleted())
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)
                 .authorName(authorName)
+                .authorUsername(p.getUser() != null ? p.getUser().getUsername() : null)
                 .build();
     }
 }
