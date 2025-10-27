@@ -10,6 +10,8 @@ import code.project.repository.JUserRepository;
 import code.project.service.JPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -45,17 +47,77 @@ public class JPostController {
     }
 
     // 수정
-    @PutMapping("/{postId}")
-    public void modify(@PathVariable Long postId, @RequestBody JPostDTO dto) {
-        dto.setPostId(postId);
-        jPostService.modify(dto);
-    }
+    //@PutMapping("/{postId}")
+    //public void modify(@PathVariable Long postId, @RequestBody JPostDTO dto) {
+    //    dto.setPostId(postId);
+    //    jPostService.modify(dto);
+    //}
 
     // 삭제
-    @DeleteMapping("/{postId}")
-    public void remove(@PathVariable Long postId) {
-        jPostService.remove(postId);
+    //@DeleteMapping("/{postId}")
+    //public void remove(@PathVariable Long postId) {
+    //    jPostService.remove(postId);
+    //}
+
+    //바뀐 수정
+    @PutMapping("/{postId}")
+    public ResponseEntity<?> modify(
+            @PathVariable Long postId,
+            @RequestBody JPostDTO dto,
+            Authentication auth
+    ) {
+        // 비로그인 요청 방어
+        if (auth == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        // 현재 로그인한 아이디 (username)
+        String loginUsername = auth.getName();
+
+        // 관리자 여부 체크
+        boolean isAdmin = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
+        try {
+            jPostService.modifyOwned(postId, loginUsername, isAdmin, dto);
+            return ResponseEntity.ok().build();
+        } catch (SecurityException se) {
+            return ResponseEntity.status(403).body(se.getMessage());
+        }
     }
+
+    //바뀐 삭제
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<?> remove(
+            @PathVariable Long postId,
+            Authentication auth
+    ) {
+        if (auth == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        String loginUsername = auth.getName();
+
+        boolean isAdmin = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN"));
+
+        try {
+            jPostService.removeWithAuth(postId, loginUsername, isAdmin);
+            return ResponseEntity.ok().build();
+        } catch (SecurityException se) {
+            return ResponseEntity.status(403).body(se.getMessage());
+        }
+    }
+
+    //게시판 수정,삭제 포인트 정리:
+    //
+    //auth == null → 401 (로그인 안 한 사람)
+    //SecurityException → 403 (권한 없음)
+    //수정할 때는 서비스에서 작성자 본인만 허용
+    //삭제할 때는 작성자 or 관리자 허용
+
 
     // 조회수 증가용
     @PatchMapping("/{id}/views")
@@ -94,7 +156,7 @@ public class JPostController {
         return ResponseEntity.ok(
                 Map.of(
                         "likeCount", updatedLikeCount,
-                        "liked", liked // 👈 프론트에서 이걸로 파란색 여부 결정
+                        "liked", liked // 프론트에서 이걸로 파란색 여부 결정
                 )
         );
     }
@@ -104,7 +166,7 @@ public class JPostController {
             @PathVariable Long id,
             @RequestParam String username
     ) {
-        // ✅ Service 인스턴스(jPostService)로 호출
+        // Service 인스턴스(jPostService)로 호출
         boolean liked = jPostService.isUserLiked(id, username);
 
         int likeCount = jPostRepository.findById(id)
