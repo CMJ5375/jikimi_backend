@@ -13,4 +13,5 @@ public class JUserModifyDTO {
 
     private Integer age;
 
+    private String address;
 }

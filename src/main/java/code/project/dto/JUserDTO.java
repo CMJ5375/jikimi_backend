@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 public class JUserDTO extends User {
 
     private String username, password, name, address, email;
-
     private Integer age;
 
     private List<String> roleNames = new ArrayList<>();
@@ -34,6 +33,7 @@ public class JUserDTO extends User {
         this.age = age;
         this.email = email;
         this.roleNames = roleNames;
+
     }
 
     public Map<String, Object> getClaims() {

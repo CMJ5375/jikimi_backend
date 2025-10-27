@@ -152,6 +152,7 @@ public class JUserServiceImpl implements JUserService {
         jUser.setPassword(passwordEncoder.encode(jUserModifyDTO.getPassword()));
         jUser.setEmail(jUserModifyDTO.getEmail());
         jUser.setAge(jUserModifyDTO.getAge());
+        jUser.setAddress(jUserModifyDTO.getAddress());
 
         jUserRepository.save(jUser);
     }
