@@ -3,6 +3,7 @@ package code.project.controller;
 import code.project.domain.Facility;
 import code.project.domain.FacilityType;
 import code.project.dto.FacilityBusinessHourDTO;
+import code.project.dto.FacilityDTO;
 import code.project.service.FacilityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,8 +33,9 @@ public class FacilityController {
 
     // 단일 시설 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<Facility> getFacilityDetail(@PathVariable Long id) {
-        return ResponseEntity.ok(facilityService.getFacility(id));
+    public ResponseEntity<FacilityDTO> getFacilityDetail(@PathVariable Long id) {
+        FacilityDTO dto = facilityService.getFacilityDTO(id);
+        return ResponseEntity.ok(dto);
     }
 
     // 단일 시설의 요일별 영업시간 조회

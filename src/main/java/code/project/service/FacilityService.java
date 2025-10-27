@@ -3,6 +3,7 @@ package code.project.service;
 import code.project.domain.Facility;
 import code.project.domain.FacilityType;
 import code.project.dto.FacilityBusinessHourDTO;
+import code.project.dto.FacilityDTO;
 import code.project.repository.FacilityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -28,9 +29,10 @@ public class FacilityService {
     }
 
     @Transactional(readOnly = true)
-    public Facility getFacility(Long id) {
-        return facilityRepository.findById(id)
+    public FacilityDTO getFacilityDTO(Long id) {
+        Facility facility = facilityRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Facility not found"));
+        return entityToDTO(facility);
     }
 
     @Transactional(readOnly = true)
@@ -44,4 +46,23 @@ public class FacilityService {
                 .toList();
     }
 
+    private FacilityDTO entityToDTO(Facility facility) {
+        return FacilityDTO.builder()
+                .facilityId(facility.getFacilityId())
+                .name(facility.getName())
+                .type(facility.getType())
+                .phone(facility.getPhone())
+                .address(facility.getAddress())
+                .latitude(facility.getLatitude() != null ? facility.getLatitude().doubleValue() : null)
+                .longitude(facility.getLongitude() != null ? facility.getLongitude().doubleValue() : null)
+                .regionCode(facility.getRegionCode())
+                .businessHours(
+                        facility.getBusinessHours() != null
+                                ? facility.getBusinessHours().stream()
+                                .map(FacilityBusinessHourDTO::fromEntity)
+                                .toList()
+                                : null
+                )
+                .build();
+    }
 }

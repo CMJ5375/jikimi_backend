@@ -20,8 +20,8 @@ public class FacilityDTO {
     private FacilityType type;
     private String phone;
     private String address;
-    private BigDecimal latitude;
-    private BigDecimal longitude;
+    private Double latitude;
+    private Double longitude;
     private String regionCode;
     private String orgType;
 
@@ -34,8 +34,8 @@ public class FacilityDTO {
                 .type(facility.getType())
                 .phone(facility.getPhone())
                 .address(facility.getAddress())
-                .latitude(facility.getLatitude())
-                .longitude(facility.getLongitude())
+                .latitude(facility.getLatitude() != null ? facility.getLatitude().doubleValue() : null)
+                .longitude(facility.getLongitude() != null ? facility.getLongitude().doubleValue() : null)
                 .regionCode(facility.getRegionCode())
                 .businessHours(facility.getBusinessHours()
                         .stream()
