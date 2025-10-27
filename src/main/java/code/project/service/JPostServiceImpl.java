@@ -138,6 +138,25 @@ public class JPostServiceImpl implements JPostService {
         }
     }
 
+    // 게시글 좋아요한 유저 찾기
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUserLiked(Long postId, String username) {
+
+        // 게시글 엔티티 찾기
+        JPost post = jPostRepository.findById(postId)
+                .orElseThrow(() ->
+                        new NoSuchElementException("Post not found: " + postId));
+
+        // 사용자 엔티티 찾기 (username으로!)
+        JUser user = jUserRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new NoSuchElementException("User not found: " + username));
+
+        // post + user 조합으로 좋아요 테이블에 row 있는지 확인
+        return jPostLikeRepository.findByPostAndUser(post, user).isPresent();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<JPostDTO> getList(PageRequestDTO req) {

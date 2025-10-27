@@ -98,4 +98,24 @@ public class JPostController {
                 )
         );
     }
+
+    @GetMapping("/{id}/likes/status")
+    public ResponseEntity<Map<String, Object>> getLikeStatus(
+            @PathVariable Long id,
+            @RequestParam String username
+    ) {
+        // ✅ Service 인스턴스(jPostService)로 호출
+        boolean liked = jPostService.isUserLiked(id, username);
+
+        int likeCount = jPostRepository.findById(id)
+                .map(JPost::getLikeCount)
+                .orElse(0);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "liked", liked,
+                        "likeCount", likeCount
+                )
+        );
+    }
 }
