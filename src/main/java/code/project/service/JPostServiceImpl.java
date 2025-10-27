@@ -2,9 +2,12 @@ package code.project.service;
 
 import code.project.domain.JPost;
 import code.project.domain.BoardCategory;
+import code.project.domain.JPostLike;
+import code.project.domain.JUser;
 import code.project.dto.PageRequestDTO;
 import code.project.dto.PageResponseDTO;
 import code.project.dto.JPostDTO;
+import code.project.repository.JPostLikeRepository;
 import code.project.repository.JPostRepository;
 import code.project.repository.JUserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,14 +26,15 @@ import java.util.stream.Collectors;
 @Transactional
 public class JPostServiceImpl implements JPostService {
 
-    private final JPostRepository JPostRepository;
-    private final JUserRepository JUserRepository; // ← User만 유지
+    private final JPostRepository jPostRepository;
+    private final JUserRepository jUserRepository; // ← User만 유지
+    private final JPostLikeRepository jPostLikeRepository;
 
     // 조회
     @Override
     @Transactional(readOnly = true)
     public JPostDTO get(Long postId) {
-        JPost JPost = JPostRepository.findById(postId)
+        JPost JPost = jPostRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found: " + postId));
         return entityToDTO(JPost);
     }
@@ -42,17 +46,17 @@ public class JPostServiceImpl implements JPostService {
 
         // User 연관만 세팅 (프록시)
         if (dto.getUserId() != null) {
-            JPost.setUser(JUserRepository.getReferenceById(dto.getUserId()));
+            JPost.setUser(jUserRepository.getReferenceById(dto.getUserId()));
         }
 
-        JPost saved = JPostRepository.save(JPost);
+        JPost saved = jPostRepository.save(JPost);
         return saved.getPostId();
     }
 
     // 수정
     @Override
     public void modify(JPostDTO dto) {
-        JPost JPost = JPostRepository.findById(dto.getPostId())
+        JPost JPost = jPostRepository.findById(dto.getPostId())
                 .orElseThrow(() -> new NoSuchElementException("Post not found: " + dto.getPostId()));
 
         // 변경 가능한 필드만 반영 (null 은 무시)
@@ -64,17 +68,17 @@ public class JPostServiceImpl implements JPostService {
 
         // User 변경이 필요한 경우에만
         if (dto.getUserId() != null) {
-            JPost.setUser(JUserRepository.getReferenceById(dto.getUserId()));
+            JPost.setUser(jUserRepository.getReferenceById(dto.getUserId()));
         }
 
         // @Transactional 더티 체킹으로 반영되지만 명시 save도 OK
-        JPostRepository.save(JPost);
+        jPostRepository.save(JPost);
     }
 
     // 삭제 (하드 삭제)
     @Override
     public void remove(Long postId) {
-        JPostRepository.deleteById(postId);
+        jPostRepository.deleteById(postId);
 
         // 소프트 삭제로 바꾸려면:
         // Post post = postRepository.findById(postId).orElseThrow();
@@ -84,18 +88,53 @@ public class JPostServiceImpl implements JPostService {
     @Override
     public void incrementView(Long id) {
         System.out.println(">>> incrementView called for post " + id);
-        int updated = JPostRepository.incrementView(id);
+        int updated = jPostRepository.incrementView(id);
         if (updated == 0) {
             throw new EntityNotFoundException("Post not found id=" + id);
         }
     }
 
-    //좋아요
+    // 게시글 좋아요
     @Override
-    public void incremLike(Long id) {
-        int updated = JPostRepository.incrementLike(id);
-        if (updated == 0) {
-            throw new EntityNotFoundException("Post not found id=" + id);
+    public void incrementLike(Long postId, String username) {
+
+        // 1. 게시글 찾기
+        JPost post = jPostRepository.findById(postId)
+                .orElseThrow(() -> new NoSuchElementException("Post not found: " + postId));
+
+        // 2. 유저 찾기
+        JUser user = jUserRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + username));
+
+        // 3. 이미 좋아요 했는지 확인
+        var optLike = jPostLikeRepository.findByPostAndUser(post, user);
+
+        if (optLike.isPresent()) {
+            // ==== 이미 눌렀던 경우 -> 취소 ====
+
+            // (1) post_like 행 삭제
+            jPostLikeRepository.deleteByPostAndUser(post, user);
+
+            // (2) likeCount -1 (0 밑으로는 안내려가게)
+            int current = (post.getLikeCount() == null ? 0 : post.getLikeCount());
+            post.setLikeCount(Math.max(current - 1, 0));
+
+            jPostRepository.save(post);
+
+        } else {
+            // ==== 처음 누르는 경우 -> 추가 ====
+
+            JPostLike like = JPostLike.builder()
+                    .post(post)
+                    .user(user)
+                    .build();
+
+            jPostLikeRepository.save(like);
+
+            int current = (post.getLikeCount() == null ? 0 : post.getLikeCount());
+            post.setLikeCount(current + 1);
+
+            jPostRepository.save(post);
         }
     }
 
@@ -122,12 +161,12 @@ public class JPostServiceImpl implements JPostService {
 
         if (q != null && !q.isBlank()) {
             page = (category == null)
-                    ? JPostRepository.searchAll(q, pageable)
-                    : JPostRepository.searchByBoard(category, q, pageable);
+                    ? jPostRepository.searchAll(q, pageable)
+                    : jPostRepository.searchByBoard(category, q, pageable);
         } else {
             page = (category == null)
-                    ? JPostRepository.findByIsDeletedFalse(pageable)
-                    : JPostRepository.findByBoardCategoryAndIsDeletedFalse(category, pageable);
+                    ? jPostRepository.findByIsDeletedFalse(pageable)
+                    : jPostRepository.findByBoardCategoryAndIsDeletedFalse(category, pageable);
         }
 
         var dtoList = page.getContent().stream()

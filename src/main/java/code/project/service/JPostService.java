@@ -26,8 +26,8 @@ public interface JPostService {
     // 조회수
     void incrementView(Long id);
 
-    // 좋아요
-    void incremLike(Long id);
+    // 좋아요 (유저당 한번)
+    void incrementLike(Long postId, String userId);
 
     // ====== Mapper ======
 
