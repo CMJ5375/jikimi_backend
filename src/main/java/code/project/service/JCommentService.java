@@ -24,6 +24,8 @@ public interface JCommentService {
     // 삭제: 본인만
     void remove(Long commentId, String username);
 
+    //내 댓글 목록
+    PageResponseDTO<JCommentDTO> getMyComments(String username, PageRequestDTO req);
     // ====== Mapper ======
     default JCommentDTO entityToDTO(JComment c) {
         if (c == null) return null;

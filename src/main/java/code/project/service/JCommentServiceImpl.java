@@ -92,4 +92,24 @@ public class JCommentServiceImpl implements JCommentService {
         commentRepository.delete(c);
         // 소프트 삭제 원하면 여기서 본문 마스킹 + 플래그 처리(엔티티 필드 추가 필요)
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponseDTO<JCommentDTO> getMyComments(String username, PageRequestDTO req) {
+        Pageable pageable = PageRequest.of(
+                Math.max(req.getPage() - 1, 0),
+                req.getSize(),
+                Sort.by(Sort.Direction.DESC, "commentId") // 최신순
+        );
+
+        Page<JComment> page = commentRepository.findByUser_Username(username, pageable);
+
+        var dtoList = page.map(this::entityToDTO).getContent();
+
+        return PageResponseDTO.<JCommentDTO>withAll()
+                .dtoList(dtoList)
+                .pageRequestDTO(req)
+                .totalCount(page.getTotalElements())
+                .build();
+    }
 }

@@ -10,6 +10,8 @@ public interface JCommentRepository extends JpaRepository<JComment, Long> {
     // 정렬은 Pageable에서 제어(DESC)
     Page<JComment> findByPost_PostId(Long postId, Pageable pageable);
 
+    Page<JComment> findByUser_Username(String username, Pageable pageable);
+
     long countByPost_PostId(Long postId);
 
     // 소유자 확인용
