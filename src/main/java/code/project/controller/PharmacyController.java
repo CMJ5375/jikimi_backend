@@ -24,9 +24,10 @@ public class PharmacyController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false, defaultValue = "37.432764") double lat,
             @RequestParam(required = false, defaultValue = "127.129637") double lng,
+            @RequestParam(required = false) String distance,
             Pageable pageable
     ) {
-        return pharmacyService.searchPharmacies(keyword, lat, lng, pageable);
+        return pharmacyService.searchPharmacies(keyword, lat, lng, distance, pageable);
     }
 
     // 약국 목록 조회 (페이징)
@@ -44,7 +45,7 @@ public class PharmacyController {
         return ResponseEntity.ok(pharmacyService.getPharmacyDetail(id));
     }
 
-    // ✅ 특정 약국의 요일별 영업시간 조회(= Facility의 영업시간)
+    // 특정 약국의 요일별 영업시간 조회(= Facility의 영업시간)
     @GetMapping("/{id}/business-hours")
     public ResponseEntity<List<FacilityBusinessHourDTO>> getPharmacyBusinessHours(@PathVariable Long id) {
         return ResponseEntity.ok(pharmacyService.getFacilityBusinessHoursByPharmacyId(id));
