@@ -22,7 +22,7 @@ public class PasswordResetService {
 
     private static final SecureRandom RND = new SecureRandom();
 
-    /** username + email이 같은 사용자 존재 여부 */
+    /** username + email이 같은 행이 존재하는지 */
     @Transactional(readOnly = true)
     public boolean existsUser(String username, String email) {
         Long cnt = em.createQuery(
@@ -33,29 +33,29 @@ public class PasswordResetService {
         return cnt != null && cnt > 0;
     }
 
-    private String key(String email) {
-        // 계정찾기 코드와 충돌 방지용 prefix
-        return "PWD|" + (email == null ? "" : email.trim().toLowerCase());
-    }
-
-    /** 1) 코드 발송: username + email 검증 후 전송 (정보노출 방지: 존재여부와 무관하게 동일 응답) */
+    /** 1) 코드 발송: username + email 매칭 확인 후 전송 */
     @Transactional(readOnly = true)
-    public void sendCode(String username, String email) {
-        // 존재하지 않는 조합이어도 같은 응답으로 처리(보안상)
+    public boolean sendCode(String username, String email) {
+        if (!existsUser(username, email)) {
+            return false; // 컨트롤러가 404로 응답
+        }
         String code = String.format("%06d", RND.nextInt(1_000_000));
-        codeStore.put(key(email), code, 300); // 5분 유효
+        // 기존처럼 email만 키로 사용 (요청대로 2번 변경 불필요)
+        codeStore.put(email, code, 300);
         mailService.sendCode(email, code);
+        return true;
     }
 
-    /** 2) 코드 검증: ✅ 삭제 없이 유효성만 확인 */
+    /** 2) 코드 검증 */
     public boolean verifyCode(String username, String email, String code) {
-        return codeStore.check(key(email), code);
+        // 핵심 검증은 email 기반 코드
+        return codeStore.verify(email, code);
     }
 
-    /** 3) 비밀번호 변경: ✅ 여기서 최종 소진(1회용) 후 업데이트 */
+    /** 3) 비밀번호 변경: 코드 재검증 + 해당 행 업데이트 */
     @Transactional
     public boolean resetPassword(String username, String email, String code, String newPassword) {
-        boolean ok = codeStore.verify(key(email), code); // 소진은 여기서!
+        boolean ok = codeStore.verify(email, code); // 1회용 검증
         if (!ok) return false;
 
         String enc = passwordEncoder.encode(newPassword);
