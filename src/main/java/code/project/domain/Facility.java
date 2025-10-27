@@ -43,6 +43,12 @@ public class Facility {
     @Builder.Default
     private List<FacilityBusinessHour> businessHours = new ArrayList<>();
 
+    @OneToOne(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Hospital hospital;   // 병원 역참조
+
+    @OneToOne(mappedBy = "facility", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Pharmacy pharmacy;   // 약국 역참조
+
     public void addBusinessHour(FacilityBusinessHour hour) {
         businessHours.add(hour);
         hour.setFacility(this);

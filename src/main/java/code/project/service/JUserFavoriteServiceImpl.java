@@ -15,7 +15,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class JUserFavoriteServiceImpl implements JUserFavoriteService {
 
     private final JUserRepository userRepository;
@@ -32,9 +31,23 @@ public class JUserFavoriteServiceImpl implements JUserFavoriteService {
     public List<Long> getMyFavoriteFacilityIds(String username, FacilityType type) {
         JUser user = getUserByUsername(username);
         // JUserFavorite 리스트로 받아서 FacilityType 기준으로 필터링
-        return favoriteRepository.findById_UserId(user.getUserId()).stream()
-                .filter(uf -> uf.getFacility() != null && uf.getFacility().getType() == type)
-                .map(uf -> uf.getFacility().getFacilityId())
+        return favoriteRepository.findById_UserId(user.getUserId())
+                .stream()
+                .map(uf -> {
+                    Facility f = uf.getFacility();
+                    if (type == FacilityType.HOSPITAL && f.getType() == FacilityType.HOSPITAL) {
+                        if (f.getHospital() != null) {
+                            return f.getHospital().getHospitalId(); // hospitalId 반환
+                        }
+                    }
+                    if (type == FacilityType.PHARMACY && f.getType() == FacilityType.PHARMACY) {
+                        if (f.getPharmacy() != null) {
+                            return f.getPharmacy().getPharmacyId(); // pharmacyId 반환
+                        }
+                    }
+                    // 매핑이 아직 없거나 예외 케이스 → facilityId로 fallback
+                    return f.getFacilityId();
+                })
                 .toList();
     }
 
@@ -46,6 +59,7 @@ public class JUserFavoriteServiceImpl implements JUserFavoriteService {
     }
 
     @Override
+    @Transactional
     public void addFavorite(String username, Long facilityId) {
         JUser user = getUserByUsername(username);
         Facility facility = facilityRepository.findById(facilityId)
@@ -57,6 +71,7 @@ public class JUserFavoriteServiceImpl implements JUserFavoriteService {
     }
 
     @Override
+    @Transactional
     public void removeFavorite(String username, Long facilityId) {
         JUser user = getUserByUsername(username);
         favoriteRepository.deleteById_UserIdAndId_FacilityId(user.getUserId(), facilityId);

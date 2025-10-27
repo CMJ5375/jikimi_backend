@@ -46,7 +46,7 @@ public class QPharmacy extends EntityPathBase<Pharmacy> {
 
     public QPharmacy(Class<? extends Pharmacy> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.facility = inits.isInitialized("facility") ? new QFacility(forProperty("facility")) : null;
+        this.facility = inits.isInitialized("facility") ? new QFacility(forProperty("facility"), inits.get("facility")) : null;
     }
 
 }
