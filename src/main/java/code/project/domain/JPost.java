@@ -69,5 +69,6 @@ public class JPost {
         if (createdAt == null) createdAt = LocalDateTime.now();
         if (likeCount == null) likeCount = 0;
         if (isDeleted == null) isDeleted = false;
+        if (viewCount == null) viewCount = 0;
     }
 }
