@@ -29,6 +29,9 @@ public interface JPostService {
     // 좋아요 (유저당 한번)
     void incrementLike(Long postId, String userId);
 
+    // 좋아요 유저
+    boolean isUserLiked(Long postId, String username);
+
     // ====== Mapper ======
 
     // Entity -> DTO
