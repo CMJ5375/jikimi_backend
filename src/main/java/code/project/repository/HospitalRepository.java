@@ -13,42 +13,28 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HospitalRepository extends JpaRepository<Hospital, Long> {
 
-    // 병원 검색 (거리 포함, 네이티브 쿼리)
-    @Query(
-            value = """
-            SELECT 
-              h.hospital_id AS hospital_id,
-              (6371 * ACOS(
-                 COS(RADIANS(:lat)) * COS(RADIANS(f.latitude))
-               * COS(RADIANS(f.longitude) - RADIANS(:lng))
-               + SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
-              )) AS distance
-            FROM hospital h
-            JOIN facility f ON f.facility_id = h.facility_id
-            WHERE (:keyword   IS NULL OR h.hospital_name   LIKE CONCAT('%', :keyword, '%'))
-              AND (:dept      IS NULL OR h.departments_csv LIKE CONCAT('%', :dept, '%'))
-              AND (:org       IS NULL OR h.org_type        LIKE CONCAT('%', :org, '%'))
-              AND (:emergency IS NULL OR h.has_emergency   = :emergency)
-            ORDER BY distance ASC
-        """,
-            countQuery = """
-            SELECT COUNT(*)
-            FROM hospital h
-            JOIN facility f ON f.facility_id = h.facility_id
-            WHERE (:keyword   IS NULL OR h.hospital_name   LIKE CONCAT('%', :keyword, '%'))
-              AND (:dept      IS NULL OR h.departments_csv LIKE CONCAT('%', :dept, '%'))
-              AND (:org       IS NULL OR h.org_type        LIKE CONCAT('%', :org, '%'))
-              AND (:emergency IS NULL OR h.has_emergency   = :emergency)
-        """,
-            nativeQuery = true
-    )
-    Page<Object[]> searchHospitalsWithDistanceNative(
+    // 병원 검색 (거리 포함, JPQL)
+    @Query("""
+        SELECT h FROM Hospital h
+        JOIN FETCH h.facility f
+        WHERE (:keyword IS NULL OR :keyword = '' OR h.hospitalName LIKE CONCAT('%', :keyword, '%'))
+          AND (:dept IS NULL OR h.departmentsCsv LIKE CONCAT('%', :dept, '%'))
+          AND (:org IS NULL OR h.orgType = :org)
+          AND (:emergency IS NULL OR h.hasEmergency = :emergency)
+        ORDER BY
+          (6371 * acos(
+            cos(radians(:lat)) * cos(radians(f.latitude)) *
+            cos(radians(f.longitude) - radians(:lng)) +
+            sin(radians(:lat)) * sin(radians(f.latitude))
+          )) ASC
+    """)
+    Page<Hospital> searchHospitals(
             @Param("keyword") String keyword,
             @Param("dept") String dept,
             @Param("org") String org,
             @Param("emergency") Boolean emergency,
-            @Param("lat") Double lat,
-            @Param("lng") Double lng,
+            @Param("lat") double lat,
+            @Param("lng") double lng,
             Pageable pageable
     );
 
