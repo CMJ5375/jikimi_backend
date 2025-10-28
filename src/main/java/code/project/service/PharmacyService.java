@@ -1,73 +1,111 @@
 package code.project.service;
 
-import code.project.domain.FacilityBusinessHour;
 import code.project.domain.Pharmacy;
 import code.project.dto.FacilityBusinessHourDTO;
 import code.project.dto.PharmacyDTO;
 import code.project.repository.PharmacyRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class PharmacyService {
 
     private final PharmacyRepository pharmacyRepository;
 
-    private Double toKm(String distance) {
-        if (distance == null) return null;
-        String s = distance.trim().toLowerCase();
-        if (s.isEmpty()) return null;
-        try {
-            if (s.endsWith("km")) {
-                return Double.parseDouble(s.substring(0, s.length() - 2).trim());
-            }
-            if (s.endsWith("m")) {
-                double meters = Double.parseDouble(s.substring(0, s.length() - 1).trim());
-                return meters / 1000.0;
-            }
-            // 숫자만 온 경우 km로 간주
-            return Double.parseDouble(s);
-        } catch (NumberFormatException e) {
-            return null; // 파싱 실패하면 전체 조회
-        }
-    }
+    // 약국 검색 (거리 + 키워드 + 즐겨찾기 전용)
+    @Transactional(readOnly = true)
+    public Page<PharmacyDTO> searchPharmacies(
+            String keyword,
+            Double lat,
+            Double lng,
+            String distance,
+            Boolean onlyFavorites,
+            String username,
+            Pageable pageable
+    ) {
+        Double radiusKm = null;
 
-    // 거리 + 키워드 기반 검색
-    public Page<PharmacyDTO> searchPharmacies(String keyword, double lat, double lng, String distance, Pageable pageable) {
-        Double radiusKm = toKm(distance);
-        Page<Pharmacy> page = pharmacyRepository.searchPharmacies(keyword, lat, lng, radiusKm, pageable);
+        if (distance != null && !distance.isBlank()) {
+            if (distance.endsWith("m")) {
+                radiusKm = Double.parseDouble(distance.replace("m", "")) / 1000.0;
+            } else if (distance.endsWith("km")) {
+                radiusKm = Double.parseDouble(distance.replace("km", ""));
+            }
+        }
+
+        Page<Pharmacy> page = onlyFavorites
+                ? pharmacyRepository.searchFavoritePharmacies(username, keyword, pageable)
+                : pharmacyRepository.searchPharmacies(keyword, lat, lng, radiusKm, pageable);
+
         return page.map(PharmacyDTO::fromEntity);
     }
 
-    // 약국 목록 (페이징)
+    // 관리자용 상세 조회
+    @Transactional(readOnly = true)
+    public Page<PharmacyDTO> getPharmacies(Pageable pageable) {
+        Page<Pharmacy> page = pharmacyRepository.findAllWithFacility(pageable);
+        return page.map(PharmacyDTO::fromEntity);
+    }
+
+    // 관리자용 페이지 목록
+    @Transactional(readOnly = true)
     public Page<PharmacyDTO> getPharmacyList(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("pharmacyId").descending());
-        Page<Pharmacy> pharmacyPage = pharmacyRepository.findAll(pageable);
-        return pharmacyPage.map(PharmacyDTO::fromEntity);
+        Page<Pharmacy> list = pharmacyRepository.findAllWithFacility(pageable);
+        return list.map(PharmacyDTO::fromEntity);
     }
 
     // 약국 상세 조회
+    @Transactional(readOnly = true)
     public PharmacyDTO getPharmacyDetail(Long id) {
-        Pharmacy pharmacy = pharmacyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("해당 약국 정보를 찾을 수 없습니다."));
+        Pharmacy pharmacy = pharmacyRepository.findByIdWithFacility(id)
+                .orElseThrow(() -> new IllegalArgumentException("약국을 찾을 수 없습니다. 약국: " + id));
         return PharmacyDTO.fromEntity(pharmacy);
     }
 
-    // 영업시간 조회
+    // 약국 요일별 영업시간
+    @Transactional(readOnly = true)
     public List<FacilityBusinessHourDTO> getFacilityBusinessHoursByPharmacyId(Long id) {
-        Pharmacy pharmacy = pharmacyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("약국 정보를 찾을 수 없습니다."));
-        List<FacilityBusinessHour> hours = pharmacy.getFacility().getBusinessHours();
-        if (hours == null) return List.of();
-        return hours.stream()
-                .map(FacilityBusinessHourDTO::fromEntity)
+        Pharmacy pharmacy = pharmacyRepository.findByIdWithFacility(id)
+                .orElseThrow(() -> new IllegalArgumentException("약국을 찾을 수 없습니다. 약국: " + id));
+        return pharmacy.getFacility().getBusinessHours()
+                .stream().map(FacilityBusinessHourDTO::fromEntity)
                 .collect(Collectors.toList());
+    }
+    private static String normalize(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    private static List<String> splitCsv(String csv) {
+        if (csv == null || csv.isBlank()) return List.of();
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .toList();
+    }
+
+    private static Double toDouble(Object o) {
+        if (o == null) return null;
+        if (o instanceof Double d) return d;
+        if (o instanceof Float f) return (double) f;
+        if (o instanceof Number n) return n.doubleValue();
+        if (o instanceof String s && !s.isBlank()) {
+            try { return Double.parseDouble(s); } catch (NumberFormatException ignore) {}
+        }
+        return null;
+    }
+
+    private static Double round2(Double v) {
+        if (v == null) return null;
+        return Math.round(v * 100.0) / 100.0;
     }
 }
