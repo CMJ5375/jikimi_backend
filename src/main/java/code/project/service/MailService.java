@@ -18,6 +18,7 @@ public class MailService {
     private static final String FROM_EMAIL = "dodojun0913@gmail.com";
     private static final String FROM_NAME  = "(주) 열려있나요?";
 
+    /** 제목을 '인증번호 123456' 형태로 전송 */
     public void sendCode(String to, String code) {
         try {
             MimeMessage mime = mailSender.createMimeMessage();
@@ -26,19 +27,24 @@ public class MailService {
             // 표시명 포함 From 설정 (한글 안전)
             helper.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME, "UTF-8"));
             helper.setTo(to);
-            helper.setSubject("[열려있나요?] 계정찾기 인증코드");
 
-            // 일반 텍스트 메일
-            String body = "인증코드: " + code + "\n유효시간: 5분";
+            // 🔵 제목에 인증번호 직접 표기
+            helper.setSubject("인증번호 " + code);   // 예: "인증번호 123456"
+            // 만약 숫자만 제목으로 원하면: helper.setSubject(code);
+
+            // 본문(텍스트)
+            String body = "요청하신 인증번호는 아래와 같습니다.\n\n"
+                    + code + "\n\n"
+                    + "유효시간: 5분\n";
             helper.setText(body, false);
 
             mailSender.send(mime);
-
-
         } catch (MessagingException e) {
-            throw new RuntimeException("MAIL_SEND_FAILED");
+            log.error("메일 전송 실패(MessagingException): to={}, code={}, err={}", to, code, e.getMessage(), e);
+            throw new RuntimeException("MAIL_SEND_FAILED", e);
         } catch (Exception e) {
-            throw new RuntimeException("MAIL_SEND_FAILED");
+            log.error("메일 전송 실패(Exception): to={}, code={}, err={}", to, code, e.getMessage(), e);
+            throw new RuntimeException("MAIL_SEND_FAILED", e);
         }
     }
 }
