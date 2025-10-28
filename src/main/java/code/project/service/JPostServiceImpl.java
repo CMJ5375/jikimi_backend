@@ -63,36 +63,36 @@ public class JPostServiceImpl implements JPostService {
     }
 
     // 수정
-    @Override
-    public void modify(JPostDTO dto) {
-        JPost JPost = jPostRepository.findById(dto.getPostId())
-                .orElseThrow(() -> new NoSuchElementException("Post not found: " + dto.getPostId()));
-
-        // 변경 가능한 필드만 반영 (null 은 무시)
-        if (dto.getTitle() != null) JPost.setTitle(dto.getTitle());
-        if (dto.getContent() != null) JPost.setContent(dto.getContent());
-        if (dto.getFileUrl() != null) JPost.setFileUrl(dto.getFileUrl());
-        if (dto.getLikeCount() != null) JPost.setLikeCount(dto.getLikeCount());
-        if (dto.getIsDeleted() != null) JPost.setIsDeleted(dto.getIsDeleted());
-
-        // User 변경이 필요한 경우에만
-        if (dto.getUserId() != null) {
-            JPost.setUser(jUserRepository.getReferenceById(dto.getUserId()));
-        }
-
-        // @Transactional 더티 체킹으로 반영되지만 명시 save도 OK
-        jPostRepository.save(JPost);
-    }
-
-    // 삭제 (하드 삭제)
-    @Override
-    public void remove(Long postId) {
-        jPostRepository.deleteById(postId);
-
-        // 소프트 삭제로 바꾸려면:
-        // Post post = postRepository.findById(postId).orElseThrow();
-        // post.setIsDeleted(true);
-    }
+//    @Override
+//    public void modify(JPostDTO dto) {
+//        JPost JPost = jPostRepository.findById(dto.getPostId())
+//                .orElseThrow(() -> new NoSuchElementException("Post not found: " + dto.getPostId()));
+//
+//        // 변경 가능한 필드만 반영 (null 은 무시)
+//        if (dto.getTitle() != null) JPost.setTitle(dto.getTitle());
+//        if (dto.getContent() != null) JPost.setContent(dto.getContent());
+//        if (dto.getFileUrl() != null) JPost.setFileUrl(dto.getFileUrl());
+//        if (dto.getLikeCount() != null) JPost.setLikeCount(dto.getLikeCount());
+//        if (dto.getIsDeleted() != null) JPost.setIsDeleted(dto.getIsDeleted());
+//
+//        // User 변경이 필요한 경우에만
+//        if (dto.getUserId() != null) {
+//            JPost.setUser(jUserRepository.getReferenceById(dto.getUserId()));
+//        }
+//
+//        // @Transactional 더티 체킹으로 반영되지만 명시 save도 OK
+//        jPostRepository.save(JPost);
+//    }
+//
+//    // 삭제 (하드 삭제)
+//    @Override
+//    public void remove(Long postId) {
+//        jPostRepository.deleteById(postId);
+//
+//        // 소프트 삭제로 바꾸려면:
+//        // Post post = postRepository.findById(postId).orElseThrow();
+//        // post.setIsDeleted(true);
+//    }
 
     //새 수정(글쓴이만 삭제.수정/관리자만 삭제가능)
     @Override
