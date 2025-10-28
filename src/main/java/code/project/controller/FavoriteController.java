@@ -16,45 +16,50 @@ public class FavoriteController {
 
     private final JUserFavoriteService favoriteService;
 
-    // 내 즐겨찾기 ID 목록 (타입별)
+    // 내 즐겨찾기 ID 목록 (병원, 약국)
     @GetMapping("/my")
     public ResponseEntity<List<Long>> myFavorites(
             Authentication authentication,
-            @RequestParam FacilityType type // HOSPITAL | PHARMACY
+            @RequestParam("type") FacilityType type
     ) {
         String username = authentication.getName();
-        return ResponseEntity.ok(favoriteService.getMyFavoriteFacilityIds(username, type));
+        List<Long> ids = favoriteService.getMyFavoriteIds(username, type);
+        return ResponseEntity.ok(ids);
     }
 
-    // 단건 즐겨찾기 여부
-    @GetMapping("/check/{facilityId}")
-    public ResponseEntity<Boolean> isFavorite(
-            Authentication authentication,
-            @PathVariable Long facilityId
-    ) {
-        String username = authentication.getName();
-        return ResponseEntity.ok(favoriteService.isMyFavorite(username, facilityId));
-    }
-
-    // 추가
-    @PostMapping("/{facilityId}")
+    // 즐겨찾기 추가
+    @PostMapping("/{targetId}")
     public ResponseEntity<Void> add(
             Authentication authentication,
-            @PathVariable Long facilityId
+            @PathVariable Long targetId,
+            @RequestParam("type") FacilityType type
     ) {
         String username = authentication.getName();
-        favoriteService.addFavorite(username, facilityId);
+        favoriteService.addFavorite(username, type, targetId);
         return ResponseEntity.ok().build();
     }
 
-    // 삭제
-    @DeleteMapping("/{facilityId}")
+    // 즐겨찾기 삭제
+    @DeleteMapping("/{targetId}")
     public ResponseEntity<Void> remove(
             Authentication authentication,
-            @PathVariable Long facilityId
+            @PathVariable Long targetId,
+            @RequestParam("type") FacilityType type
     ) {
         String username = authentication.getName();
-        favoriteService.removeFavorite(username, facilityId);
+        favoriteService.removeFavorite(username, type, targetId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 즐겨찾기 여부 확인 (토글 기능용)
+    @GetMapping("/check/{targetId}")
+    public ResponseEntity<Boolean> checkFavorite(
+            Authentication authentication,
+            @PathVariable Long targetId,
+            @RequestParam("type") FacilityType type
+    ) {
+        String username = authentication.getName();
+        boolean isFav = favoriteService.isFavorite(username, type, targetId);
+        return ResponseEntity.ok(isFav);
     }
 }
