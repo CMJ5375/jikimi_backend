@@ -16,9 +16,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -85,14 +83,7 @@ public class JPostServiceImpl implements JPostService {
     }
 
     // 삭제 (하드 삭제)
-    @Override
-    public void remove(Long postId) {
-        jPostRepository.deleteById(postId);
-
-        // 소프트 삭제로 바꾸려면:
-        // Post post = postRepository.findById(postId).orElseThrow();
-        // post.setIsDeleted(true);
-    }
+//    ㄴ
 
     //새 수정(글쓴이만 삭제.수정/관리자만 삭제가능)
     @Override

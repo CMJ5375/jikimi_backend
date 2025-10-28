@@ -59,16 +59,17 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
             Pageable pageable
     );
 
-    // 목록/상세 최적화
+    // 병원 목록 페이징
     @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
-    @Query("select h from Hospital h")
+    @Query("SELECT h FROM Hospital h")
     Page<Hospital> findAllWithFacility(Pageable pageable);
 
+    // 병원 상세
     @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
-    @Query("select h from Hospital h where h.hospitalId = :id")
+    @Query("SELECT h FROM Hospital h WHERE h.hospitalId = :id")
     Optional<Hospital> findByIdWithFacility(@Param("id") Long id);
 
-    // 배치로 엔티티 로드 (필요 시 유지)
+    // 병원 목록
     @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
     List<Hospital> findByHospitalIdIn(List<Long> ids);
 }
