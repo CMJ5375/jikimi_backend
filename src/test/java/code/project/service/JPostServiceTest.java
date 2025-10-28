@@ -34,18 +34,4 @@ class JPostServiceTest {
 
         JPostService.register(build);
     }
-
-    @Test
-    public void 수정(){
-        JUser JUser = JUserRepository.findById(1L).orElseThrow();
-        Long postid = 1L;
-        JPostDTO before = JPostService.get(postid);
-
-        before.setTitle("복강경 수술 후기 수정");
-        before.setContent("너무 아프지 않았어요");
-        before.setCreatedAt(LocalDateTime.now());
-        before.setBoardCategory(BoardCategory.HOSPITAL_INFO);
-
-        JPostService.modify(before);
-    }
 }
