@@ -39,7 +39,7 @@ public class JPostServiceImpl implements JPostService {
         return entityToDTO(JPost);
     }
 
-    // 등록
+    // 등록 커밋/브렌치 테스트
     @Override
     public Long register(JPostDTO dto) {
 
