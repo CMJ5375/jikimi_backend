@@ -46,15 +46,15 @@ class JUserRepositoryTest {
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
-                .username("test2")
+                .username("test3")
                 .password(passwordEncoder.encode("1234"))
-                .name("테스터2")
-                .email("test2@aaa.com")
+                .name("관리자")
+                .email("test3@aaa.com")
                 .socialType("LOCAL")
                 .build();
 
         // when
-        admin.addRole(JMemberRole.USER);
+        admin.addRole(JMemberRole.ADMIN);
         jUserRepository.save(admin);
 
         // then

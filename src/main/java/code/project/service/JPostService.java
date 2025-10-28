@@ -15,7 +15,7 @@ public interface JPostService {
     Long register(JPostDTO dto);
 
     // 수정
-    void modify(JPostDTO dto);
+    //void modify(JPostDTO dto);
 
     // 새 수정: 로그인 사용자 정보 받아서 권한 체크
     void modifyOwned(Long postId,
@@ -24,7 +24,7 @@ public interface JPostService {
                      JPostDTO dto);
 
     // 삭제(소프트 딜리트라면 isDeleted = true 처리)
-    void remove(Long postId);
+    //void remove(Long postId);
 
     // 새 삭제: 작성자 or 관리자만 허용
     void removeWithAuth(Long postId,
