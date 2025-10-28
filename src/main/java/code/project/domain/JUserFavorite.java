@@ -2,15 +2,21 @@ package code.project.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
         name = "user_favorite",
         uniqueConstraints = {
-                // 병원 즐겨찾기 중복 방지
                 @UniqueConstraint(name = "uk_fav_user_hospital", columnNames = {"user_id", "hospital_id"}),
-                // 약국 즐겨찾기 중복 방지
                 @UniqueConstraint(name = "uk_fav_user_pharmacy", columnNames = {"user_id", "pharmacy_id"})
+        },
+        indexes = {
+                @Index(name = "idx_fav_user", columnList = "user_id"),
+                @Index(name = "idx_fav_hospital", columnList = "hospital_id"),
+                @Index(name = "idx_fav_pharmacy", columnList = "pharmacy_id")
         }
 )
 @Getter
@@ -26,24 +32,29 @@ public class JUserFavorite {
     @Column(name = "favorite_id")
     private Long favoriteId;
 
-    //유저
+    // 유저
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_fav_user"))
     private JUser user;
 
-    // 병원/약국을 분리 저장
+    // 병원/약국 (둘 중 하나만 설정)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hospital_id")
+    @JoinColumn(name = "hospital_id", foreignKey = @ForeignKey(name = "fk_fav_hospital"))
     private Hospital hospital;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pharmacy_id")
+    @JoinColumn(name = "pharmacy_id", foreignKey = @ForeignKey(name = "fk_fav_pharmacy"))
     private Pharmacy pharmacy;
 
-    // 타입 힌트 (UI/조회 편의)
+    // ✅ 예약어 충돌 방지: 백틱으로 정확히 "type" 컬럼에 매핑
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", length = 20, nullable = false)
-    private FacilityType type; // HOSPITAL or PHARMACY
+    @Column(name = "`type`", length = 20, nullable = false)
+    private FacilityType type; // HOSPITAL | PHARMACY
+
+    // ✅ 자동 생성일
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     // ===== 편의 팩토리 =====
     public static JUserFavorite ofHospital(JUser user, Hospital hospital) {
