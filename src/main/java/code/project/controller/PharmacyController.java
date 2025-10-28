@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,11 +23,14 @@ public class PharmacyController {
     @GetMapping("/search")
     public Page<PharmacyDTO> searchPharmacies(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false, defaultValue = "37.432764") double lat,
-            @RequestParam(required = false, defaultValue = "127.129637") double lng,
+            @RequestParam(required = false, defaultValue = "37.432764") Double lat,
+            @RequestParam(required = false, defaultValue = "127.129637") Double lng,
             @RequestParam(required = false) String distance,
+            @RequestParam(required = false, defaultValue = "false") Boolean onlyFavorites,
+            Authentication authentication,
             Pageable pageable
     ) {
+        String username = (onlyFavorites && authentication != null) ? authentication.getName() : null;
         return pharmacyService.searchPharmacies(keyword, lat, lng, distance, pageable);
     }
 

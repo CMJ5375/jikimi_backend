@@ -33,12 +33,42 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
             @Param("dept") String dept,
             @Param("org") String org,
             @Param("emergency") Boolean emergency,
-            @Param("lat") double lat,
-            @Param("lng") double lng,
+            @Param("lat") Double lat,
+            @Param("lng") Double lng,
             Pageable pageable
     );
 
-    // 배치로 엔티티 로드
+    // 즐겨찾기 전용 검색 (username 기준)
+    @Query("""
+        SELECT h FROM JUserFavorite f
+        JOIN f.hospital h
+        JOIN h.facility ff
+        WHERE f.user.username = :username
+          AND (:keyword IS NULL OR h.hospitalName LIKE %:keyword%)
+          AND (:dept IS NULL OR h.departmentsCsv LIKE %:dept%)
+          AND (:org IS NULL OR h.orgType = :org)
+          AND (:emergency IS NULL OR h.hasEmergency = :emergency)
+        ORDER BY h.hospitalId DESC
+    """)
+    Page<Hospital> searchFavoriteHospitals(
+            @Param("username") String username,
+            @Param("keyword") String keyword,
+            @Param("dept") String dept,
+            @Param("org") String org,
+            @Param("emergency") Boolean emergency,
+            Pageable pageable
+    );
+
+    // 목록/상세 최적화
+    @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
+    @Query("select h from Hospital h")
+    Page<Hospital> findAllWithFacility(Pageable pageable);
+
+    @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
+    @Query("select h from Hospital h where h.hospitalId = :id")
+    Optional<Hospital> findByIdWithFacility(@Param("id") Long id);
+
+    // 배치로 엔티티 로드 (필요 시 유지)
     @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
     List<Hospital> findByHospitalIdIn(List<Long> ids);
 }
