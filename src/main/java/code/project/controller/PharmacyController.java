@@ -31,7 +31,7 @@ public class PharmacyController {
             Pageable pageable
     ) {
         String username = (onlyFavorites && authentication != null) ? authentication.getName() : null;
-        return pharmacyService.searchPharmacies(keyword, lat, lng, distance, pageable);
+        return pharmacyService.searchPharmacies(keyword, lat, lng, distance, onlyFavorites, username, pageable);
     }
 
     // 약국 목록 조회 (페이징)
@@ -41,6 +41,12 @@ public class PharmacyController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(pharmacyService.getPharmacyList(page, size));
+    }
+
+    // 관리자용
+    @GetMapping
+    public Page<PharmacyDTO> listPharmacies(Pageable pageable) {
+        return pharmacyService.getPharmacies(pageable);
     }
 
     // 약국 상세 조회
