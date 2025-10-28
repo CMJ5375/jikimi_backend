@@ -34,6 +34,7 @@ class JUserRepositoryTest {
                 .build();
 
         // when
+        user.addRole(JMemberRole.USER);
         JUser saved = jUserRepository.save(user);
 
         assertThat(saved.getUserId()).isNotNull();

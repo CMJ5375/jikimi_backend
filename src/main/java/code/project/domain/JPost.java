@@ -63,6 +63,13 @@ public class JPost {
     @Column(nullable = false, columnDefinition = "int default 0")
     private int viewCount;
 
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.REMOVE,     // ← 핵심
+            orphanRemoval = true              // ← 핵심
+    )
+    private java.util.List<JPostLike> likes = new java.util.ArrayList<>();
+
     // 생성시 자동 설정되게
     @PrePersist
     void onCreate() {
