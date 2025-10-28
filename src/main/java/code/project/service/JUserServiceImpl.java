@@ -146,13 +146,33 @@ public class JUserServiceImpl implements JUserService {
 
         log.info("아이디 : {}", jUserModifyDTO.getUsername());
 
-        Optional<JUser> result = jUserRepository.getCodeUserByUsername(jUserModifyDTO.getUsername());
+        JUser jUser = jUserRepository
+                .getCodeUserByUsername(jUserModifyDTO.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + jUserModifyDTO.getUsername()));
 
-        JUser jUser = result.orElseThrow();
-        jUser.setPassword(passwordEncoder.encode(jUserModifyDTO.getPassword()));
-        jUser.setEmail(jUserModifyDTO.getEmail());
-        jUser.setAge(jUserModifyDTO.getAge());
-        jUser.setAddress(jUserModifyDTO.getAddress());
+        // ✅ password: null/빈문자면 건드리지 않음 (비번 변경은 별도 화면)
+        if (jUserModifyDTO.getPassword() != null && !jUserModifyDTO.getPassword().isBlank()) {
+            jUser.setPassword(passwordEncoder.encode(jUserModifyDTO.getPassword()));
+        }
+
+        // ✅ email: null이면 스킵, 값이 오면 빈문자도 허용하지 않으려면 아래처럼 trim 검사
+        if (jUserModifyDTO.getEmail() != null && !jUserModifyDTO.getEmail().isBlank()) {
+            jUser.setEmail(jUserModifyDTO.getEmail().trim());
+        }
+
+        // ✅ address: null이면 스킵
+        if (jUserModifyDTO.getAddress() != null) {
+            String addr = jUserModifyDTO.getAddress().trim();
+            // 빈문자 들어오면 기존값 유지하려면 if(!addr.isEmpty()) 조건
+            if (!addr.isEmpty()) {
+                jUser.setAddress(addr);
+            }
+        }
+
+        // ✅ age: null이면 스킵 (프런트에서 "" → null로 보내는 게 안전)
+        if (jUserModifyDTO.getAge() != null) {
+            jUser.setAge(jUserModifyDTO.getAge());
+        }
 
         jUserRepository.save(jUser);
     }

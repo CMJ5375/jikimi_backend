@@ -22,6 +22,8 @@ public class QJUserFavorite extends EntityPathBase<JUserFavorite> {
 
     public static final QJUserFavorite jUserFavorite = new QJUserFavorite("jUserFavorite");
 
+    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
+
     public final NumberPath<Long> favoriteId = createNumber("favoriteId", Long.class);
 
     public final QHospital hospital;
