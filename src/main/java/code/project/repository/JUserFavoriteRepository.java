@@ -1,5 +1,6 @@
 package code.project.repository;
 
+import code.project.domain.FacilityType;
 import code.project.domain.Hospital;
 import code.project.domain.Pharmacy;
 import code.project.domain.JUserFavorite;
@@ -32,7 +33,7 @@ public interface JUserFavoriteRepository extends JpaRepository<JUserFavorite, Lo
     """)
     List<Long> findPharmacyIdsByUserId(@Param("userId") Long userId);
 
-    // 즐겨찾기 존재 여부 확인 (병원, 약국 각각 따로)
+    // 즐겨찾기 존재 여부 확인
     boolean existsByUser_UserIdAndHospital_HospitalId(Long userId, Long hospitalId);
     boolean existsByUser_UserIdAndPharmacy_PharmacyId(Long userId, Long pharmacyId);
 
@@ -40,7 +41,7 @@ public interface JUserFavoriteRepository extends JpaRepository<JUserFavorite, Lo
     void deleteByUser_UserIdAndHospital_HospitalId(Long userId, Long hospitalId);
     void deleteByUser_UserIdAndPharmacy_PharmacyId(Long userId, Long pharmacyId);
 
-    // 병원 즐겨찾기 (페이지네이션)
+    // ✅ 병원 즐겨찾기 (페이지네이션) - type 필터 명시
     @EntityGraph(attributePaths = {
             "hospital",
             "hospital.facility",
@@ -50,13 +51,14 @@ public interface JUserFavoriteRepository extends JpaRepository<JUserFavorite, Lo
         SELECT h FROM JUserFavorite f
         JOIN f.hospital h
         WHERE f.user.username = :username
+          AND f.type = code.project.domain.FacilityType.HOSPITAL
     """)
     Page<Hospital> findHospitalsPageByUsername(
             @Param("username") String username,
             Pageable pageable
     );
 
-    // 약국 즐겨찾기 (페이지네이션)
+    // ✅ 약국 즐겨찾기 (페이지네이션) - type 필터 명시
     @EntityGraph(attributePaths = {
             "pharmacy",
             "pharmacy.facility",
@@ -66,6 +68,7 @@ public interface JUserFavoriteRepository extends JpaRepository<JUserFavorite, Lo
         SELECT p FROM JUserFavorite f
         JOIN f.pharmacy p
         WHERE f.user.username = :username
+          AND f.type = code.project.domain.FacilityType.PHARMACY
     """)
     Page<Pharmacy> findPharmaciesPageByUsername(
             @Param("username") String username,
