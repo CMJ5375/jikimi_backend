@@ -1,12 +1,10 @@
 package code.project.service;
 
-import code.project.domain.Facility;
-import code.project.domain.FacilityType;
-import code.project.domain.JUser;
-import code.project.domain.JUserFavorite;
-import code.project.repository.FacilityRepository;
+import code.project.domain.*;
+import code.project.repository.HospitalRepository;
 import code.project.repository.JUserFavoriteRepository;
 import code.project.repository.JUserRepository;
+import code.project.repository.PharmacyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,65 +13,82 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class JUserFavoriteServiceImpl implements JUserFavoriteService {
 
     private final JUserRepository userRepository;
-    private final FacilityRepository facilityRepository;
     private final JUserFavoriteRepository favoriteRepository;
+    private final HospitalRepository hospitalRepository;
+    private final PharmacyRepository pharmacyRepository;
 
-    private JUser getUserByUsername(String username) {
-        return userRepository.getCodeUserByUsername(username)
+    private JUser getUser(String username) {
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
     }
 
+    // 내 즐겨찾기 ID 리스트
     @Override
-    @Transactional(readOnly = true)
-    public List<Long> getMyFavoriteFacilityIds(String username, FacilityType type) {
-        JUser user = getUserByUsername(username);
-        // JUserFavorite 리스트로 받아서 FacilityType 기준으로 필터링
-        return favoriteRepository.findById_UserId(user.getUserId())
-                .stream()
-                .map(uf -> {
-                    Facility f = uf.getFacility();
-                    if (type == FacilityType.HOSPITAL && f.getType() == FacilityType.HOSPITAL) {
-                        if (f.getHospital() != null) {
-                            return f.getHospital().getHospitalId(); // hospitalId 반환
-                        }
-                    }
-                    if (type == FacilityType.PHARMACY && f.getType() == FacilityType.PHARMACY) {
-                        if (f.getPharmacy() != null) {
-                            return f.getPharmacy().getPharmacyId(); // pharmacyId 반환
-                        }
-                    }
-                    // 매핑이 아직 없거나 예외 케이스 → facilityId로 fallback
-                    return f.getFacilityId();
-                })
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isMyFavorite(String username, Long facilityId) {
-        JUser user = getUserByUsername(username);
-        return favoriteRepository.existsById_UserIdAndId_FacilityId(user.getUserId(), facilityId);
-    }
-
-    @Override
-    @Transactional
-    public void addFavorite(String username, Long facilityId) {
-        JUser user = getUserByUsername(username);
-        Facility facility = facilityRepository.findById(facilityId)
-                .orElseThrow(() -> new IllegalArgumentException("Facility not found: " + facilityId));
-        boolean exists = favoriteRepository.existsById_UserIdAndId_FacilityId(user.getUserId(), facilityId);
-        if (!exists) {
-            favoriteRepository.save(JUserFavorite.of(user, facility));
+    public List<Long> getMyFavoriteIds(String username, FacilityType type) {
+        JUser user = getUser(username);
+        if (type == FacilityType.HOSPITAL) {
+            return favoriteRepository.findHospitalIdsByUserId(user.getUserId());
+        } else if (type == FacilityType.PHARMACY) {
+            return favoriteRepository.findPharmacyIdsByUserId(user.getUserId());
         }
+        throw new IllegalArgumentException("Unsupported type: " + type);
     }
 
+    // 즐겨찾기 추가
     @Override
     @Transactional
-    public void removeFavorite(String username, Long facilityId) {
-        JUser user = getUserByUsername(username);
-        favoriteRepository.deleteById_UserIdAndId_FacilityId(user.getUserId(), facilityId);
+    public void addFavorite(String username, FacilityType type, Long targetId) {
+        JUser user = getUser(username);
+
+        if (type == FacilityType.HOSPITAL) {
+            if (favoriteRepository.existsByUser_UserIdAndHospital_HospitalId(user.getUserId(), targetId)) return;
+            Hospital hospital = hospitalRepository.findById(targetId)
+                    .orElseThrow(() -> new IllegalArgumentException("Hospital not found: " + targetId));
+            favoriteRepository.save(JUserFavorite.ofHospital(user, hospital));
+            return;
+        }
+
+        if (type == FacilityType.PHARMACY) {
+            if (favoriteRepository.existsByUser_UserIdAndPharmacy_PharmacyId(user.getUserId(), targetId)) return;
+            Pharmacy pharmacy = pharmacyRepository.findById(targetId)
+                    .orElseThrow(() -> new IllegalArgumentException("Pharmacy not found: " + targetId));
+            favoriteRepository.save(JUserFavorite.ofPharmacy(user, pharmacy));
+            return;
+        }
+
+        throw new IllegalArgumentException("Unsupported type: " + type);
+    }
+
+    // 즐겨찾기 삭제
+    @Override
+    @Transactional
+    public void removeFavorite(String username, FacilityType type, Long targetId) {
+        JUser user = getUser(username);
+
+        if (type == FacilityType.HOSPITAL) {
+            favoriteRepository.deleteByUser_UserIdAndHospital_HospitalId(user.getUserId(), targetId);
+            return;
+        }
+        if (type == FacilityType.PHARMACY) {
+            favoriteRepository.deleteByUser_UserIdAndPharmacy_PharmacyId(user.getUserId(), targetId);
+            return;
+        }
+        throw new IllegalArgumentException("Unsupported type: " + type);
+    }
+
+    // 즐겨찾기 여부 확인 (토글용)
+    @Override
+    public boolean isFavorite(String username, FacilityType type, Long targetId) {
+        JUser user = getUser(username);
+        if (type == FacilityType.HOSPITAL) {
+            return favoriteRepository.existsByUser_UserIdAndHospital_HospitalId(user.getUserId(), targetId);
+        } else if (type == FacilityType.PHARMACY) {
+            return favoriteRepository.existsByUser_UserIdAndPharmacy_PharmacyId(user.getUserId(), targetId);
+        }
+        return false;
     }
 }

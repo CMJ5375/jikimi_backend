@@ -22,9 +22,13 @@ public class QJUserFavorite extends EntityPathBase<JUserFavorite> {
 
     public static final QJUserFavorite jUserFavorite = new QJUserFavorite("jUserFavorite");
 
-    public final QFacility facility;
+    public final NumberPath<Long> favoriteId = createNumber("favoriteId", Long.class);
 
-    public final QJUserFavoriteId id;
+    public final QHospital hospital;
+
+    public final QPharmacy pharmacy;
+
+    public final EnumPath<FacilityType> type = createEnum("type", FacilityType.class);
 
     public final QJUser user;
 
@@ -46,8 +50,8 @@ public class QJUserFavorite extends EntityPathBase<JUserFavorite> {
 
     public QJUserFavorite(Class<? extends JUserFavorite> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.facility = inits.isInitialized("facility") ? new QFacility(forProperty("facility")) : null;
-        this.id = inits.isInitialized("id") ? new QJUserFavoriteId(forProperty("id")) : null;
+        this.hospital = inits.isInitialized("hospital") ? new QHospital(forProperty("hospital"), inits.get("hospital")) : null;
+        this.pharmacy = inits.isInitialized("pharmacy") ? new QPharmacy(forProperty("pharmacy"), inits.get("pharmacy")) : null;
         this.user = inits.isInitialized("user") ? new QJUser(forProperty("user")) : null;
     }
 
