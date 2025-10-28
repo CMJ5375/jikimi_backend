@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder @ToString(exclude = {"post", "user"})
 public class JComment {
     //커밋 테스트
+    //브렌치 테스트
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
 
