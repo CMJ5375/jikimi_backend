@@ -16,7 +16,7 @@ public class JPostDTO {
         private BoardCategory boardCategory;
         private String title;
         private String content;
-        private String fileUrl;
+        private String fileUrl; //첨부파일
         private Integer likeCount;
         private LocalDateTime createdAt;
         private Boolean isDeleted;
