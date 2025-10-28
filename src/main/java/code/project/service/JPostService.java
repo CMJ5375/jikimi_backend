@@ -14,9 +14,6 @@ public interface JPostService {
     // 등록
     Long register(JPostDTO dto);
 
-    // 수정
-    void modify(JPostDTO dto);
-
     // 새 수정: 로그인 사용자 정보 받아서 권한 체크
     void modifyOwned(Long postId,
                      String loginUsername,
