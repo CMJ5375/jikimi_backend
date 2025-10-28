@@ -23,41 +23,17 @@ public class HospitalService {
 
     // 병원 검색 서비스 로직 (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실여부)
     @Transactional(readOnly = true)
-    public Page<HospitalDTO> searchHospitals(String keyword, String org, String dept,
-                                             Boolean emergency, double lat, double lng, Pageable pageable) {
-
-        String k = normalize(keyword);
-        String o = normalize(org);
-        String d = normalize(dept);
-
-        Page<Object[]> result = hospitalRepository.searchHospitalsWithDistanceNative(
-                k, d, o, emergency, lat, lng, pageable
-        );
-
-        if (result.isEmpty()) return Page.empty(pageable);
-
-        // 병원 ID 목록 추출
-        List<Long> ids = result.getContent().stream()
-                .map(r -> ((Number) r[0]).longValue())
-                .collect(Collectors.toList());
-
-        // ID로 실제 엔티티 배치 조회
-        Map<Long, Hospital> hospitalMap = hospitalRepository.findByHospitalIdIn(ids)
-                .stream().collect(Collectors.toMap(Hospital::getHospitalId, h -> h));
-
-        // DTO 조립
-        List<HospitalDTO> dtoList = result.getContent().stream().map(r -> {
-            Long id = ((Number) r[0]).longValue();
-            Double distance = toDouble(r[1]);
-            Hospital hospital = hospitalMap.get(id);
-            if (hospital == null) return null;
-
-            HospitalDTO dto = HospitalDTO.fromEntity(hospital);
-            dto.setDistance(round2(distance));
-            return dto;
-        }).filter(Objects::nonNull).toList();
-
-        return new PageImpl<>(dtoList, pageable, result.getTotalElements());
+    public Page<HospitalDTO> searchHospitals(
+            String keyword,
+            String org,
+            String dept,
+            Boolean emergency,
+            double lat,
+            double lng,
+            Pageable pageable
+    ) {
+        Page<Hospital> hospitals = hospitalRepository.searchHospitals(keyword, dept, org, emergency, lat, lng, pageable);
+        return hospitals.map(HospitalDTO::fromEntity);
     }
 
     // 병원 목록 조회 (페이징)

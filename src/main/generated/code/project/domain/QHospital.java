@@ -54,7 +54,7 @@ public class QHospital extends EntityPathBase<Hospital> {
 
     public QHospital(Class<? extends Hospital> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.facility = inits.isInitialized("facility") ? new QFacility(forProperty("facility")) : null;
+        this.facility = inits.isInitialized("facility") ? new QFacility(forProperty("facility"), inits.get("facility")) : null;
     }
 
 }
