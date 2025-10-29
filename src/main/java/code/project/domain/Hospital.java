@@ -10,7 +10,9 @@ import lombok.*;
                 @Index(name = "idx_hospital_has_emergency", columnList = "has_emergency")
         })
 @Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @ToString(exclude = "facility")
 public class Hospital {
 
@@ -26,12 +28,11 @@ public class Hospital {
     @Column(name = "hospital_name", length = 200, nullable = false)
     private String hospitalName;
 
-    /** 병원 유형 (예: 의원, 병원, 치과의원, 요양병원 등) */
     @Column(name = "org_type", length = 50)
     private String orgType;
 
     @Column(name = "has_emergency", nullable = false)
-    private boolean hasEmergency;
+    private Boolean hasEmergency;
 
     // CSV로 합쳐 저장 (콤마 구분)
     @Column(name = "departments_csv", columnDefinition = "TEXT")
