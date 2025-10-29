@@ -44,6 +44,7 @@ public class CustomSecurityConfig {
                 .requestMatchers("/api/password/**").permitAll()
                 .requestMatchers("/project/register").permitAll()
                 .requestMatchers("/project/user/**", "/project/hospital/**", "/project/pharmacy/**", "/project/facility/**", "/error").permitAll()
+                .requestMatchers("/files/**").permitAll()
                 .anyRequest().authenticated()
         );
 

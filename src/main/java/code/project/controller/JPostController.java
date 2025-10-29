@@ -1,6 +1,7 @@
 package code.project.controller;
 
 import code.project.domain.JPost;
+import code.project.domain.JUser;
 import code.project.dto.PageRequestDTO;
 import code.project.dto.PageResponseDTO;
 import code.project.dto.JPostDTO;
@@ -10,13 +11,18 @@ import code.project.repository.JUserRepository;
 import code.project.service.JPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,11 +49,101 @@ public class JPostController {
         return jPostService.get(postId);
     }
 
-    // 등록
-    @PostMapping("/add")
-    public Long register(@RequestBody JPostDTO dto) {
-        return jPostService.register(dto);
+    // 새 등록 (파일 업로드 + fileUrl 세팅)
+    @PostMapping(
+            value = "/add",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public Long register(
+            @RequestPart("post") JPostDTO dto,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+
+        // 0. 디버그
+        System.out.println(">> /api/posts/add called");
+        System.out.println(">> dto.authorUsername = " + dto.getAuthorUsername());
+        System.out.println(">> dto.title = " + dto.getTitle());
+        System.out.println(">> dto.boardCategory = " + dto.getBoardCategory());
+        System.out.println(">> incoming file = " + (file != null ? file.getOriginalFilename() : "null"));
+
+        // 1) 작성자(username)로 유저 찾기
+        JUser user = jUserRepository.findByUsername(dto.getAuthorUsername())
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + dto.getAuthorUsername()));
+
+        // 2) 먼저 Post 엔티티를 저장해서 postId 확보 (파일 경로 계산에 필요)
+        JPost entity = JPost.builder()
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .boardCategory(dto.getBoardCategory())
+                .fileUrl(null) // 일단 비워두고 나중에 채움
+                .likeCount(0)
+                .viewCount(0)
+                .isDeleted(false)
+                .user(user)
+                .build();
+
+        JPost saved = jPostRepository.save(entity); // 여기서 postId 생성됨
+        Long postId = saved.getPostId();
+
+        System.out.println(">> saved postId = " + postId);
+
+        // 3) 파일이 있으면 디스크에 저장
+        if (file != null && !file.isEmpty()) {
+
+            // (3-1) 업로드 루트 경로 결정
+            // 프로젝트 루트 기준으로 "uploads/{postId}" 폴더에 저장
+            String uploadRootPath = System.getProperty("user.dir")
+                    + File.separator + "uploads";
+
+            File dir = new File(uploadRootPath, postId.toString());
+            if (!dir.exists()) {
+                boolean mk = dir.mkdirs();
+                System.out.println(">> mkdirs: " + dir.getAbsolutePath() + " result=" + mk);
+            }
+
+            // (3-2) 원본 파일명 안전하게 정제
+            String rawName = file.getOriginalFilename();        // 예: "아이 피부질환.png" 또는 "C:\\fakepath\\FGroup.png"
+            if (rawName == null) rawName = "file";
+
+            // 윈도우/브라우저가 경로 통째로 줄 수도 있으니까 마지막 조각만 취함
+            String safeName = new File(rawName).getName();      // "C:\fakepath\FGroup.png" -> "FGroup.png"
+
+            // 혹시라도 파일명에 슬래시(/)가 포함된 미친 경우 방어 (Tomcat path variable 깨지는 원인)
+            safeName = safeName.replace("/", "_");
+
+            System.out.println(">> final safeName = " + safeName);
+
+            // (3-3) 실제 저장할 물리 파일 경로
+            File dest = new File(dir, safeName);
+            file.transferTo(dest); // 디스크에 저장 완료
+            System.out.println(">> file saved to " + dest.getAbsolutePath());
+
+            // (3-4) 이 파일을 내려줄 다운로드 URL을 DB에 넣는다
+            // 최종적으로 프론트에서는 이 값을 그대로 받아
+            //   http://localhost:8080 + fileUrl
+            // 로 열게 할 거야.
+            //
+            // 모양은 꼭 이렇게: /files/{postId}/{safeName}
+            String downloadPath = "/files/" + postId + "/" + safeName;
+
+            // DB에 다시 반영
+            saved.setFileUrl(downloadPath);
+            jPostRepository.save(saved);
+
+            System.out.println(">> saved.fileUrl = " + saved.getFileUrl());
+        } else {
+            System.out.println(">> no file uploaded for this post");
+        }
+
+        // 4) 최종적으로 postId 반환
+        return postId;
     }
+
+    // 등록
+    //@PostMapping("/add")
+    //public Long register(@RequestBody JPostDTO dto) {
+    //    return jPostService.register(dto);
+    //}
 
     // 수정
     //@PutMapping("/{postId}")
