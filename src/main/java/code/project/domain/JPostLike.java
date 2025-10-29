@@ -4,20 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(
-        name = "post_like",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uq_post_user",
-                        columnNames = {"post_id", "user_id"}
-                )
-        }
-)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "post_like")
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class JPostLike {
 
     @Id

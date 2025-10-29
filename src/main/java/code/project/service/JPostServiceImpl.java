@@ -12,16 +12,19 @@ import code.project.repository.JPostRepository;
 import code.project.repository.JUserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class JPostServiceImpl implements JPostService {
 
     private final JPostRepository jPostRepository;
@@ -110,9 +113,9 @@ public class JPostServiceImpl implements JPostService {
         // 삭제는 두 경우 허용:
         // 1) 내가 쓴 글이면 삭제 가능
         // 2) 관리자는 누구 글이든 삭제 가능
-        if (!(ownerUsername.equals(loginUsername) || isAdmin)) {
-            throw new SecurityException("삭제 권한이 없습니다.");
-        }
+//        if (!(ownerUsername.equals(loginUsername) || isAdmin)) {
+//            throw new SecurityException("삭제 권한이 없습니다.");
+//        }
 
         // 하드 삭제
         jPostRepository.delete(post);
@@ -253,6 +256,11 @@ public class JPostServiceImpl implements JPostService {
             }
         }
 
+        // 좋아요 누른 사람 username 목록 만들기
+        List<String> likedNames = p.getLikes().stream()
+                .map(like -> like.getUser().getUsername())
+                .toList();
+
         return JPostDTO.builder()
                 .postId(p.getPostId())
                 .title(p.getTitle())
@@ -263,9 +271,11 @@ public class JPostServiceImpl implements JPostService {
                 .viewCount(p.getViewCount())
                 .createdAt(p.getCreatedAt())
                 .isDeleted(p.getIsDeleted())
+
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)
                 .authorName(authorName)
                 .authorUsername(p.getUser() != null ? p.getUser().getUsername() : null)
+                .likedUsernames(likedNames)
                 .build();
     }
 }

@@ -5,8 +5,6 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,5 +24,10 @@ public class JPostDTO {
         private Long userId;
         private String authorName;
 
-        private String authorUsername; //게시글 작성자가 관리자인지 일반 유저인지
+        //게시글 작성자가 관리자인지 일반 유저인지
+        private String authorUsername;
+
+        // 이 글에 좋아요 누른 사용자 username 목록
+        private java.util.List<String> likedUsernames;
+
 }

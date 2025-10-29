@@ -9,6 +9,7 @@ import code.project.repository.JPostRepository;
 import code.project.repository.JUserRepository;
 import code.project.service.JPostService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/posts")
 public class JPostController {
 
@@ -66,6 +68,7 @@ public class JPostController {
             @RequestBody JPostDTO dto,
             Authentication auth
     ) {
+        log.info("postId : {}", postId);
         // 비로그인 요청 방어
         if (auth == null) {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
@@ -119,19 +122,19 @@ public class JPostController {
     //삭제할 때는 작성자 or 관리자 허용
 
 
-    // 조회수 증가용
-    @PatchMapping("/{id}/views")
-    public ResponseEntity<Map<String, Object>> incrementViews(@PathVariable Long id) {
-        // 1) 조회수 +1
-        jPostService.incrementView(id);
-
-        // 2) 증가된 최신 값 다시 조회해서 클라로 돌려주기
-        int updated = jPostRepository.findById(id)
-                .map(JPost::getViewCount)
-                .orElse(0);
-
-        return ResponseEntity.ok(Map.of("viewCount", updated));
-    }
+    // 조회수 증가용 //오류 없으면 삭제
+//    @PatchMapping("/{id}/views")
+//    public ResponseEntity<Map<String, Object>> incrementViews(@PathVariable Long id) {
+//        // 1) 조회수 +1
+//        jPostService.incrementView(id);
+//
+//        // 2) 증가된 최신 값 다시 조회해서 클라로 돌려주기
+//        int updated = jPostRepository.findById(id)
+//                .map(JPost::getViewCount)
+//                .orElse(0);
+//
+//        return ResponseEntity.ok(Map.of("viewCount", updated));
+//    }
 
     //좋아요
     @PatchMapping("/{id}/likes")

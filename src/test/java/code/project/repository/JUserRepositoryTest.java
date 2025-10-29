@@ -34,22 +34,23 @@ class JUserRepositoryTest {
                 .build();
 
         // when
+        user.addRole(JMemberRole.USER);
         JUser saved = jUserRepository.save(user);
 
         assertThat(saved.getUserId()).isNotNull();
         assertThat(jUserRepository.existsByUsername("tester")).isTrue();
 
-        log.info("저장된 사용자: {}", saved);
+//        log.info("저장된 사용자: {}", saved);
     }
 
     @Test
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
-                .username("test3")
+                .username("test4")
                 .password(passwordEncoder.encode("1234"))
                 .name("관리자")
-                .email("test3@aaa.com")
+                .email("test4@aaa.com")
                 .socialType("LOCAL")
                 .build();
 
@@ -58,8 +59,8 @@ class JUserRepositoryTest {
         jUserRepository.save(admin);
 
         // then
-        assertThat(jUserRepository.existsByUsername("test2")).isTrue();
-        log.info("관리자 계정 저장 완료: {}", admin);
+        assertThat(jUserRepository.existsByUsername("test4")).isTrue();
+//        log.info("관리자 계정 저장 완료: {}", admin);
     }
 
     @Test
@@ -69,10 +70,10 @@ class JUserRepositoryTest {
         JUser user = jUserRepository.getwithRoles(username);
 
         if (user != null) {
-            log.info("조회된 사용자: {}", user);
-            log.info("권한 목록: {}", user.getJMemberRoleList());
+//            log.info("조회된 사용자: {}", user);
+//            log.info("권한 목록: {}", user.getJMemberRoleList());
         } else {
-            log.warn("⚠️ '{}' 사용자 없음", username);
+//            log.warn("⚠️ '{}' 사용자 없음", username);
         }
         assertThat(user).isNotNull();
     }
@@ -84,13 +85,13 @@ class JUserRepositoryTest {
         JUser user = jUserRepository.getwithRoles(username);
 
         if (user == null) {
-            log.warn("'{}' 사용자 없음 - 삭제 스킵", username);
+//            log.warn("'{}' 사용자 없음 - 삭제 스킵", username);
             return;
         }
 
         jUserRepository.delete(user);
         assertThat(jUserRepository.existsByUsername(username)).isFalse();
 
-        log.info("'{}' 사용자 삭제 완료", username);
+//        log.info("'{}' 사용자 삭제 완료", username);
     }
 }

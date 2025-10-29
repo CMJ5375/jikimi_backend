@@ -67,10 +67,6 @@ public class FavoriteController {
         return ResponseEntity.ok(isFav);
     }
 
-    // ================================
-    // ✅ 마이페이지 전용 즐겨찾기 API
-    // ================================
-
     // 마이페이지 병원 즐겨찾기 목록 (페이징)
     @GetMapping("/hospitals")
     public Page<HospitalDTO> myHospitalFavorites(
