@@ -12,27 +12,45 @@ import java.util.Optional;
 @Repository
 public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
 
-    // 약국 검색 (거리 + 키워드)
-    @Query("""
-        SELECT p FROM Pharmacy p
-        JOIN p.facility f
-        WHERE (:keyword IS NULL OR :keyword = '' OR p.pharmacyName LIKE CONCAT('%', :keyword, '%'))
-          AND (
-            :radiusKm IS NULL OR
-            (6371 * acos(
-              cos(radians(:lat)) * cos(radians(f.latitude)) *
-              cos(radians(f.longitude) - radians(:lng)) +
-              sin(radians(:lat)) * sin(radians(f.latitude))
-            )) <= :radiusKm
-          )
-        ORDER BY
-          (6371 * acos(
-            cos(radians(:lat)) * cos(radians(f.latitude)) *
-            cos(radians(f.longitude) - radians(:lng)) +
-            sin(radians(:lat)) * sin(radians(f.latitude))
-          )) ASC
-    """)
-    Page<Pharmacy> searchPharmacies(
+    /** 일반 검색 — 반경 필터 O (네이티브) */
+    @Query(
+            value = """
+            SELECT p.*
+            FROM pharmacy p
+            JOIN facility f ON f.facility_id = p.facility_id
+            WHERE (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+              AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
+              AND (
+                6371 * ACOS(
+                  COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+                  COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+                  SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+                )
+              ) <= :radiusKm
+            ORDER BY
+              6371 * ACOS(
+                COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+                COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+                SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+              ) ASC
+        """,
+            countQuery = """
+            SELECT COUNT(*)
+            FROM pharmacy p
+            JOIN facility f ON f.facility_id = p.facility_id
+            WHERE (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+              AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
+              AND (
+                6371 * ACOS(
+                  COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+                  COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+                  SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+                )
+              ) <= :radiusKm
+        """,
+            nativeQuery = true
+    )
+    Page<Pharmacy> searchPharmaciesWithin(
             @Param("keyword") String keyword,
             @Param("lat") Double lat,
             @Param("lng") Double lng,
@@ -40,27 +58,98 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
             Pageable pageable
     );
 
-    // 즐겨찾기 전용 검색 username기준으로 Pharmacy 조인
-    @Query("""
-        SELECT p FROM JUserFavorite f
-        JOIN f.pharmacy p
-        JOIN p.facility ff
-        WHERE f.user.username = :username
+    /** 일반 검색 — 반경 필터 X (네이티브, 정렬은 이름/ID 등) */
+    @Query(
+            value = """
+            SELECT p.*
+            FROM pharmacy p
+            WHERE (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+            ORDER BY p.pharmacy_id ASC
+        """,
+            countQuery = """
+            SELECT COUNT(*)
+            FROM pharmacy p
+            WHERE (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+        """,
+            nativeQuery = true
+    )
+    Page<Pharmacy> searchPharmaciesAll(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    /** 즐겨찾기 — 반경 필터 O (네이티브) */
+    @Query(
+            value = """
+            SELECT p.*
+            FROM pharmacy p
+            JOIN facility f ON f.facility_id = p.facility_id
+            JOIN user_favorite uf ON uf.pharmacy_id = p.pharmacy_id
+            JOIN `User` u ON u.user_id = uf.user_id
+            WHERE u.username = :username
+              AND (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+              AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
+              AND (
+                6371 * ACOS(
+                  COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+                  COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+                  SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+                )
+              ) <= :radiusKm
+            ORDER BY
+              6371 * ACOS(
+                COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+                COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+                SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+              ) ASC
+        """,
+            countQuery = """
+            SELECT COUNT(*)
+            FROM pharmacy p
+            JOIN facility f ON f.facility_id = p.facility_id
+            JOIN user_favorite uf ON uf.pharmacy_id = p.pharmacy_id
+            JOIN `User` u ON u.user_id = uf.user_id
+            WHERE u.username = :username
+              AND (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+              AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
+              AND (
+                6371 * ACOS(
+                  COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+                  COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+                  SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+                )
+              ) <= :radiusKm
+        """,
+            nativeQuery = true
+    )
+    Page<Pharmacy> searchFavoritePharmaciesWithin(
+            @Param("username") String username,
+            @Param("keyword") String keyword,
+            @Param("lat") Double lat,
+            @Param("lng") Double lng,
+            @Param("radiusKm") Double radiusKm,
+            Pageable pageable
+    );
+
+    /** 즐겨찾기 — 반경 필터 X (JPQL) */
+    @Query(""" 
+        SELECT p FROM JUserFavorite uf
+        JOIN uf.pharmacy p
+        JOIN p.facility f
+        WHERE uf.user.username = :username
           AND (:keyword IS NULL OR p.pharmacyName LIKE %:keyword%)
         ORDER BY p.pharmacyId DESC
     """)
-    Page<Pharmacy> searchFavoritePharmacies(
+    Page<Pharmacy> searchFavoritePharmaciesAll(
             @Param("username") String username,
             @Param("keyword") String keyword,
             Pageable pageable
     );
 
-    // 목록 조회 시 facility + businessHours 함께 조회
     @EntityGraph(attributePaths = {"facility", "facility.businessHours"})
     @Query("SELECT p FROM Pharmacy p")
     Page<Pharmacy> findAllWithFacility(Pageable pageable);
 
-    // 상세 조회 시 facility + businessHours 함께 조회
     @EntityGraph(attributePaths = {"facility", "facility.businessHours"})
     @Query("SELECT p FROM Pharmacy p WHERE p.pharmacyId = :id")
     Optional<Pharmacy> findByIdWithFacility(@Param("id") Long id);
