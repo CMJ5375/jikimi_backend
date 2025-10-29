@@ -5,6 +5,7 @@ import code.project.dto.FacilityBusinessHourDTO;
 import code.project.service.HospitalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,7 +19,7 @@ public class HospitalController {
 
     private final HospitalService hospitalService;
 
-    // 병원 검색 API (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실)
+    // 병원 검색 API (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실 + 즐겨찾기 + 페이징)
     @GetMapping("/search")
     public Page<HospitalDTO> searchHospitals(
             @RequestParam(required = false) String keyword,
@@ -28,10 +29,12 @@ public class HospitalController {
             @RequestParam(required = false, defaultValue = "37.432764") Double lat,
             @RequestParam(required = false, defaultValue = "127.129637") Double lng,
             @RequestParam(required = false, defaultValue = "false") Boolean onlyFavorites,
-            Authentication authentication,
-            Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
     ) {
         String username = (onlyFavorites && authentication != null) ? authentication.getName() : null;
+        Pageable pageable = PageRequest.of(page, size);
         return hospitalService.searchHospitals(
                 keyword, org, dept, emergency, lat, lng, onlyFavorites, username, pageable
         );
@@ -44,11 +47,6 @@ public class HospitalController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(hospitalService.getHospitalList(page, size));
-    }
-
-    @GetMapping
-    public Page<HospitalDTO> listHospitals(Pageable pageable) {
-        return hospitalService.getHospitals(pageable);
     }
 
     // 병원 상세 조회

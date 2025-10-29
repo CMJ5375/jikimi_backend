@@ -14,19 +14,22 @@ import org.springframework.stereotype.Repository;
 public interface HospitalRepository extends JpaRepository<Hospital, Long> {
 
     // 병원 검색 (거리 포함, JPQL)
+    @EntityGraph(attributePaths = {"facility", "facility.businessHours"})
     @Query("""
         SELECT h FROM Hospital h
         JOIN FETCH h.facility f
-        WHERE (:keyword IS NULL OR :keyword = '' OR h.hospitalName LIKE CONCAT('%', :keyword, '%'))
-          AND (:dept IS NULL OR h.departmentsCsv LIKE CONCAT('%', :dept, '%'))
-          AND (:org IS NULL OR h.orgType = :org)
-          AND (:emergency IS NULL OR h.hasEmergency = :emergency)
+        WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND (:dept IS NULL OR :dept = '' OR
+            CONCAT(',', REPLACE(COALESCE(h.departmentsCsv, ''), ' ', ''), ',')
+            LIKE CONCAT('%,', REPLACE(:dept, ' ', ''), ',%'))
+        AND (:org IS NULL OR :org = '' OR LOWER(TRIM(h.orgType)) = LOWER(TRIM(:org)))
+        AND (:emergency IS NULL OR h.hasEmergency = :emergency)
         ORDER BY
-          (6371 * acos(
+        (6371 * acos(
             cos(radians(:lat)) * cos(radians(f.latitude)) *
             cos(radians(f.longitude) - radians(:lng)) +
             sin(radians(:lat)) * sin(radians(f.latitude))
-          )) ASC
+        )) ASC
     """)
     Page<Hospital> searchHospitals(
             @Param("keyword") String keyword,
@@ -39,15 +42,18 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     );
 
     // 즐겨찾기 전용 검색 (username 기준)
+    @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
     @Query("""
         SELECT h FROM JUserFavorite f
         JOIN f.hospital h
         JOIN h.facility ff
         WHERE f.user.username = :username
-          AND (:keyword IS NULL OR h.hospitalName LIKE %:keyword%)
-          AND (:dept IS NULL OR h.departmentsCsv LIKE %:dept%)
-          AND (:org IS NULL OR h.orgType = :org)
-          AND (:emergency IS NULL OR h.hasEmergency = :emergency)
+        AND (:keyword IS NULL OR LOWER(ff.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND (:dept IS NULL OR :dept = '' OR
+            CONCAT(',', REPLACE(COALESCE(h.departmentsCsv, ''), ' ', ''), ',')
+            LIKE CONCAT('%,', REPLACE(:dept, ' ', ''), ',%'))
+        AND (:org IS NULL OR :org = '' OR LOWER(TRIM(h.orgType)) = LOWER(TRIM(:org)))
+        AND (:emergency IS NULL OR h.hasEmergency = :emergency)
         ORDER BY h.hospitalId DESC
     """)
     Page<Hospital> searchFavoriteHospitals(
@@ -60,16 +66,12 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     );
 
     // 병원 목록 페이징
-    @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
+    @EntityGraph(attributePaths = {"facility", "facility.businessHours"})
     @Query("SELECT h FROM Hospital h")
     Page<Hospital> findAllWithFacility(Pageable pageable);
 
     // 병원 상세
-    @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
+    @EntityGraph(attributePaths = {"facility", "facility.businessHours"})
     @Query("SELECT h FROM Hospital h WHERE h.hospitalId = :id")
     Optional<Hospital> findByIdWithFacility(@Param("id") Long id);
-
-    // 병원 목록
-    @EntityGraph(attributePaths = { "facility", "facility.businessHours" })
-    List<Hospital> findByHospitalIdIn(List<Long> ids);
 }
