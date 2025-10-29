@@ -6,6 +6,8 @@ import code.project.dto.PageRequestDTO;
 import code.project.dto.PageResponseDTO;
 import code.project.dto.JPostDTO;
 
+import java.util.List;
+
 public interface JPostService {
 
     // 단건 조회
@@ -94,4 +96,6 @@ public interface JPostService {
 
         return builder.build();
     }
+    List<JPostDTO> getMyPosts(String username);
+
 }

@@ -48,4 +48,5 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
     Page<JPost> searchByBoard(@Param("boardCategory") BoardCategory boardCategory, // 👈 타입 변경
                               @Param("q") String q,
                               Pageable pageable);
+    List<JPost> findByUser_UsernameAndIsDeletedFalseOrderByPostIdDesc(String username);
 }
