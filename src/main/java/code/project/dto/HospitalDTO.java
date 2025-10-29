@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 public class HospitalDTO {
     private Long hospitalId;
     private String hospitalName;
-    private boolean hasEmergency;
-    private Double distance; // 선택적
+    private Boolean hasEmergency;
+    private Double distance;
     private String orgType;
     private FacilityDTO facility;
-    private List<String> departments;   // 유지
-    private List<String> institutions; // 유지
+    private List<String> departments;
+    private List<String> institutions;
 
     // 중복 가능성: FacilityDTO.businessHours에 이미 포함되므로 이 필드는 보통 제거 권장
     private List<FacilityBusinessHourDTO> facilityBusinessHours;
@@ -30,11 +30,10 @@ public class HospitalDTO {
                 .hospitalId(entity.getHospitalId())
                 .hospitalName(entity.getHospitalName())
                 .orgType(entity.getOrgType())
-                .hasEmergency(entity.isHasEmergency())
+                .hasEmergency(entity.getHasEmergency())
                 .facility(FacilityDTO.fromEntity(entity.getFacility()))
                 .departments(splitCsv(entity.getDepartmentsCsv()))
                 .institutions(splitCsv(entity.getInstitutionsCsv()))
-                // 필요 시 중복 제거: 아래 줄은 선택
                 .facilityBusinessHours(
                         entity.getFacility().getBusinessHours().stream()
                                 .map(FacilityBusinessHourDTO::fromEntity)

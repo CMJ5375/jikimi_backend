@@ -39,13 +39,6 @@ public class HospitalService {
         return hospitals.map(HospitalDTO::fromEntity);
     }
 
-     // 관리자/기본 목록용 단순 목록 조회
-    @Transactional(readOnly = true)
-    public Page<HospitalDTO> getHospitals(Pageable pageable) {
-        Page<Hospital> page = hospitalRepository.findAllWithFacility(pageable);
-        return page.map(HospitalDTO::fromEntity);
-    }
-
     // 단순 목록 조회
     @Transactional(readOnly = true)
     public Page<HospitalDTO> getHospitalList(int page, int size) {
