@@ -7,6 +7,7 @@ import code.project.domain.JUser;
 import code.project.dto.PageRequestDTO;
 import code.project.dto.PageResponseDTO;
 import code.project.dto.JPostDTO;
+import code.project.repository.JCommentRepository;
 import code.project.repository.JPostLikeRepository;
 import code.project.repository.JPostRepository;
 import code.project.repository.JUserRepository;
@@ -17,8 +18,10 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -30,7 +33,7 @@ public class JPostServiceImpl implements JPostService {
     private final JPostRepository jPostRepository;
     private final JUserRepository jUserRepository; // ← User만 유지
     private final JPostLikeRepository jPostLikeRepository;
-
+    private final JCommentRepository jCommentRepository;
     // 조회
     @Override
     @Transactional(readOnly = true)
@@ -277,5 +280,33 @@ public class JPostServiceImpl implements JPostService {
                 .authorUsername(p.getUser() != null ? p.getUser().getUsername() : null)
                 .likedUsernames(likedNames)
                 .build();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<JPostDTO> getMyPosts(String username) {
+        var entities = jPostRepository
+                .findByUser_UsernameAndIsDeletedFalseOrderByPostIdDesc(username);
+
+        // ✅ 1) postId 모으기
+        var ids = entities.stream().map(JPost::getPostId).toList();
+
+        // ✅ 2) 벌크 카운트 실행 → Map<Long, Integer>로 변환
+        var countMap = new HashMap<Long, Integer>();
+        if (!ids.isEmpty()) {
+            for (Object[] row : jCommentRepository.countGroupByPostIds(ids)) {
+                Long postId = (Long) row[0];
+                Long cnt = (Long) row[1]; // JPA가 Long으로 가져옴
+                countMap.put(postId, cnt.intValue());
+            }
+        }
+
+        // ✅ 3) DTO 매핑 + commentCount 주입
+        return entities.stream()
+                .map(p -> {
+                    var dto = entityToDTO(p);
+                    dto.setCommentCount(countMap.getOrDefault(p.getPostId(), 0));
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 }
