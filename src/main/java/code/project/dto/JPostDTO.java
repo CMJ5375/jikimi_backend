@@ -19,7 +19,7 @@ public class JPostDTO {
         private LocalDateTime createdAt;
         private Boolean isDeleted;
         private Integer viewCount;
-
+        private Integer commentCount;
         // 연관 객체는 ID나 이름만 노출
         private Long userId;
         private String authorName;
