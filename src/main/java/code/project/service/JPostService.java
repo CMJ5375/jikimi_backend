@@ -31,7 +31,8 @@ public interface JPostService {
                         boolean isAdmin);
 
     // 페이징 목록
-    PageResponseDTO<JPostDTO> getList(PageRequestDTO pageRequestDTO);
+    PageResponseDTO<JPostDTO> getList(PageRequestDTO req);
+
 
     // 조회수
     void incrementView(Long id);

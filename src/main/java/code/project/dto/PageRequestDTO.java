@@ -17,4 +17,7 @@ public class PageRequestDTO {
 
     private String boardCategory; // 프론트에서 문자열로 넘어오는 값
     private String q;
+
+    private String sort; //DEFAULT  | POPULAR 면 인기글
+    private String days; //최근 N일 (기본 7일)
 }

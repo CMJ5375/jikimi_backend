@@ -18,6 +18,8 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -201,41 +203,55 @@ public class JPostServiceImpl implements JPostService {
         return jPostLikeRepository.findByPostAndUser(post, user).isPresent();
     }
 
+    // JPostServiceImpl
     @Override
     @Transactional(readOnly = true)
     public PageResponseDTO<JPostDTO> getList(PageRequestDTO req) {
-        Pageable pageable = PageRequest.of(
-                Math.max(req.getPage() - 1, 0),
-                req.getSize(),
-                Sort.by(Sort.Direction.DESC, "postId")
-        );
+        boolean popular = "POPULAR".equalsIgnoreCase(req.getSort());
 
+        log.info("REQ sort={}, days={}", req.getSort(), req.getDays());
+
+        Pageable pageable = popular
+                ? PageRequest.of(Math.max(req.getPage()-1,0), req.getSize(),
+                Sort.by(Sort.Order.desc("likeCount"),
+                        Sort.Order.desc("viewCount"),
+                        Sort.Order.desc("createdAt")))
+                : PageRequest.of(Math.max(req.getPage()-1,0), req.getSize(),
+                Sort.by(Sort.Direction.DESC, "postId"));
+
+        // 안전 파싱 (못 파싱하면 null)
         BoardCategory category = null;
-        if (req.getBoardCategory() != null && !req.getBoardCategory().isBlank()) {
-            try {
-                category = BoardCategory.valueOf(req.getBoardCategory().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                // 무시/로그
-            }
+        if (req.getBoardCategory()!=null && !req.getBoardCategory().isBlank()) {
+            try { category = BoardCategory.valueOf(req.getBoardCategory().toUpperCase()); }
+            catch (Exception ignore) {}
         }
+        String q = (req.getQ()!=null && !req.getQ().isBlank()) ? req.getQ() : null;
 
-        String q = req.getQ();
         Page<JPost> page;
 
-        if (q != null && !q.isBlank()) {
-            page = (category == null)
-                    ? jPostRepository.searchAll(q, pageable)
-                    : jPostRepository.searchByBoard(category, q, pageable);
+        if (popular) {
+            int days = 7;
+            try {
+                if (req.getDays() != null && !req.getDays().isBlank()) {
+                    days = Math.max(Integer.parseInt(req.getDays()), 1);
+                }
+            } catch (NumberFormatException ignore) {
+                days = 7;
+            }
+
+            LocalDateTime since = LocalDate.now()
+                    .minusDays(days)
+                    .atStartOfDay();
+            //log.info("POPULAR mode. days={}, since={}", days, since);
+
+            page = jPostRepository.findPopular(category, q, since, pageable);
         } else {
-            page = (category == null)
-                    ? jPostRepository.findByIsDeletedFalse(pageable)
-                    : jPostRepository.findByBoardCategoryAndIsDeletedFalse(category, pageable);
+            page = jPostRepository.findDefault(category, q, pageable);
         }
 
-        var dtoList = page.getContent().stream()
-                .map(this::entityToDTO)
-                .toList();
+        //log.info("RESULT total={}, pageSize={}", page.getTotalElements(), page.getNumberOfElements());
 
+        var dtoList = page.getContent().stream().map(this::entityToDTO).toList();
         return PageResponseDTO.<JPostDTO>withAll()
                 .dtoList(dtoList)
                 .pageRequestDTO(req)
@@ -281,6 +297,7 @@ public class JPostServiceImpl implements JPostService {
                 .likedUsernames(likedNames)
                 .build();
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<JPostDTO> getMyPosts(String username) {

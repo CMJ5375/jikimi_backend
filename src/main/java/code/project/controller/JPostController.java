@@ -38,8 +38,19 @@ public class JPostController {
 
     // 목록 (페이징)
     @GetMapping("/list")
-    public PageResponseDTO<JPostDTO> list(PageRequestDTO pageRequestDTO) {
-        return jPostService.getList(pageRequestDTO);
+    public PageResponseDTO<JPostDTO> list(
+            PageRequestDTO req,
+            @RequestParam(required=false, defaultValue="DEFAULT") String sort,
+            @RequestParam(required=false, defaultValue="7") Integer days
+    ) {
+        // 빈 문자열 -> null 로 정규화
+        String cat = (req.getBoardCategory()!=null && !req.getBoardCategory().isBlank())
+                ? req.getBoardCategory() : null;
+        req.setBoardCategory(cat);
+        req.setSort(sort);
+        req.setDays(String.valueOf(days == null ? 7 : days));
+
+        return jPostService.getList(req); // ← 서비스는 req 하나만 받도록
     }
 
     // 단건 조회 => 조회수증가
