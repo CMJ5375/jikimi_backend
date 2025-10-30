@@ -78,6 +78,27 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
             Pageable pageable
     );
 
+    // 반경 없이도 '거리순' 정렬 (JPQL)
+    @EntityGraph(attributePaths = {"facility", "facility.businessHours"})
+    @Query("""
+        SELECT p FROM Pharmacy p
+        JOIN p.facility f
+        WHERE (:keyword IS NULL OR :keyword = '' OR LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+        AND :lat IS NOT NULL AND :lng IS NOT NULL
+        ORDER BY
+          (6371 * acos(
+            cos(radians(:lat)) * cos(radians(f.latitude)) *
+            cos(radians(f.longitude) - radians(:lng)) +
+            sin(radians(:lat)) * sin(radians(f.latitude))
+          )) ASC
+    """)
+    Page<Pharmacy> searchPharmaciesOrderByDistance(
+            @Param("keyword") String keyword,
+            @Param("lat") Double lat,
+            @Param("lng") Double lng,
+            Pageable pageable
+    );
+
     /** 즐겨찾기 — 반경 필터 O (네이티브) */
     @Query(
             value = """
@@ -131,14 +152,14 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
             Pageable pageable
     );
 
-    /** 즐겨찾기 — 반경 필터 X (JPQL) */
+    /** 즐겨찾기 — 반경 필터 X 등록순 정렬 (JPQL) */
     @Query(""" 
         SELECT p FROM JUserFavorite uf
         JOIN uf.pharmacy p
         JOIN p.facility f
         WHERE uf.user.username = :username
           AND (:keyword IS NULL OR p.pharmacyName LIKE %:keyword%)
-        ORDER BY p.pharmacyId DESC
+        ORDER BY uf.favoriteId ASC
     """)
     Page<Pharmacy> searchFavoritePharmaciesAll(
             @Param("username") String username,

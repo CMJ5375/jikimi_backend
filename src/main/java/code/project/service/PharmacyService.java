@@ -21,17 +21,7 @@ public class PharmacyService {
 
     private final PharmacyRepository pharmacyRepository;
 
-    /**
-     * 일반 약국 검색 (거리와 키워드로 검색, 즐겨찾기 포함 여부)
-     * @param keyword 키워드
-     * @param lat 위도
-     * @param lng 경도
-     * @param distance 거리
-     * @param onlyFavorites 즐겨찾기 여부
-     * @param username 사용자 이름
-     * @param pageable 페이지 정보
-     * @return 검색된 약국 페이지
-     */
+    //  일반 약국 검색 (거리와 키워드로 검색, 즐겨찾기 포함 여부)
     // PharmacyService 수정된 부분
     @Transactional(readOnly = true)
     public Page<PharmacyDTO> searchPharmacies(
@@ -48,7 +38,6 @@ public class PharmacyService {
         // 거리 값 처리 (미터 -> km 변환)
         if (distance != null && !distance.isBlank()) {
             String s = distance.trim().toLowerCase();
-            log.info("정규화된 거리 문자열: '{}'", s);
             try {
                 if (s.endsWith("km")) {                      // ✅ km 먼저
                     String num = s.substring(0, s.length() - 2).trim();
@@ -63,18 +52,36 @@ public class PharmacyService {
                 log.warn("잘못된 거리 값: '{}'", distance, e);
             }
         }
-        log.info("[PharmacyService] 거리 파싱 직전: distance='{}'", distance);
-        log.info("[PharmacyService] 거리 변환 결과 radiusKm: {}", radiusKm);
-
-
         // 즐겨찾기만 찾는 경우, 또는 전체 검색인 경우 구분
         Page<Pharmacy> page;
-        if (onlyFavorites) {
-            page = pharmacyRepository.searchFavoritePharmaciesWithin(username, keyword, lat, lng, radiusKm, pageable);
-        } else if (radiusKm != null) {
-            page = pharmacyRepository.searchPharmaciesWithin(keyword, lat, lng, radiusKm, pageable);
+        //  즐겨찾기 정렬 방식
+        if (onlyFavorites != null && onlyFavorites) {
+            if (radiusKm != null) {
+                // 반경 지정한 즐겨찾기 → 거리순
+                page = pharmacyRepository.searchFavoritePharmaciesWithin(
+                        username, keyword, lat, lng, radiusKm, pageable
+                );
+            } else {
+                // 거리순 안씀 → 등록순
+                page = pharmacyRepository.searchFavoritePharmaciesAll(
+                        username, keyword, pageable
+                );
+            }
         } else {
-            page = pharmacyRepository.searchPharmaciesAll(keyword, pageable);
+            if (radiusKm != null) {
+                // 일반 검색 (거리 필터 O)
+                page = pharmacyRepository.searchPharmaciesWithin(
+                        keyword, lat, lng, radiusKm, pageable
+                );
+            } else if (lat != null && lng != null) {
+                // 일반 검색 (거리 필터 X) → 거리순
+                page = pharmacyRepository.searchPharmaciesOrderByDistance(
+                        keyword, lat, lng, pageable
+                );
+            } else {
+                // 일반 검색 (좌표 없음)
+                page = pharmacyRepository.searchPharmaciesAll(keyword, pageable);
+            }
         }
 
         return page.map(PharmacyDTO::fromEntity);
