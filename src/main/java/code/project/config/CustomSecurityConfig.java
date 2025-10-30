@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -29,6 +30,7 @@ public class CustomSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+        http.csrf(csrf -> csrf.disable()); //테스트용
         log.info("..........security config");
 
         //CORS 정책사용
@@ -43,7 +45,11 @@ public class CustomSecurityConfig {
                 .requestMatchers("/api/account/**").permitAll()
                 .requestMatchers("/api/password/**").permitAll()
                 .requestMatchers("/project/register").permitAll()
+                .requestMatchers("/project/open-hours/**", "/project/facility/*/business-hours").permitAll()
+                .requestMatchers("/project/nmc/**").permitAll()
+                .requestMatchers("/", "/error", "/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/project/user/**", "/project/hospital/**", "/project/pharmacy/**", "/project/facility/**", "/error").permitAll()
+                .requestMatchers("/project/realtime/**").permitAll()
                 .requestMatchers("/files/**").permitAll()
                 .anyRequest().authenticated()
         );
@@ -60,7 +66,7 @@ public class CustomSecurityConfig {
         //유효시간이 지나지 않았지만 권한이 없는 사용자가 가진 토큰을 사용하는 경우
         http.exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler()));
 
-
+        http.httpBasic(Customizer.withDefaults());
         return http.build();
     }
 

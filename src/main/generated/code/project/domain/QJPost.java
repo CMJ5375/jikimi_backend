@@ -34,6 +34,8 @@ public class QJPost extends EntityPathBase<JPost> {
 
     public final NumberPath<Integer> likeCount = createNumber("likeCount", Integer.class);
 
+    public final ListPath<JPostLike, QJPostLike> likes = this.<JPostLike, QJPostLike>createList("likes", JPostLike.class, QJPostLike.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> postId = createNumber("postId", Long.class);
 
     public final StringPath title = createString("title");
