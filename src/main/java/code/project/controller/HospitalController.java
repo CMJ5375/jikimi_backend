@@ -19,7 +19,7 @@ public class HospitalController {
 
     private final HospitalService hospitalService;
 
-    // 병원 검색 API (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실 + 즐겨찾기 + 페이징)
+    // 병원 검색 API (거리순 + 키워드 + 과목CSV + 기관유형 + 응급실 + 위치 + 즐겨찾기 + 페이징)
     @GetMapping("/search")
     public Page<HospitalDTO> searchHospitals(
             @RequestParam(required = false) String keyword,
