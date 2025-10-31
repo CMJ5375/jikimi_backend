@@ -44,6 +44,86 @@ class JUserRepositoryTest {
     }
 
     @Test
+    @DisplayName("User 저장 및 조회 테스트")
+    void 페르소나홍기열() {
+        // given
+        JUser user = JUser.builder()
+                .username("hong")
+                .password(passwordEncoder.encode("1234"))
+                .name("홍기열")
+                .email("hong@example.com")
+                .socialType("LOCAL")
+                .build();
+
+        // when
+        user.addRole(JMemberRole.USER);
+        JUser saved = jUserRepository.save(user);
+
+        assertThat(saved.getUserId()).isNotNull();
+        assertThat(jUserRepository.existsByUsername("hong")).isTrue();
+    }
+
+    @Test
+    @DisplayName("User 저장 및 조회 테스트")
+    void 페르소나조민성() {
+        // given
+        JUser user = JUser.builder()
+                .username("jo")
+                .password(passwordEncoder.encode("1234"))
+                .name("조민성")
+                .email("jo@example.com")
+                .socialType("LOCAL")
+                .build();
+
+        // when
+        user.addRole(JMemberRole.USER);
+        JUser saved = jUserRepository.save(user);
+
+        assertThat(saved.getUserId()).isNotNull();
+        assertThat(jUserRepository.existsByUsername("jo")).isTrue();
+    }
+
+    @Test
+    @DisplayName("User 저장 및 조회 테스트")
+    void 페르소나김설란() {
+        // given
+        JUser user = JUser.builder()
+                .username("kim")
+                .password(passwordEncoder.encode("1234"))
+                .name("김설란")
+                .email("kim@example.com")
+                .socialType("LOCAL")
+                .build();
+
+        // when
+        user.addRole(JMemberRole.USER);
+        JUser saved = jUserRepository.save(user);
+
+        assertThat(saved.getUserId()).isNotNull();
+        assertThat(jUserRepository.existsByUsername("kim")).isTrue();
+    }
+
+    @Test
+    @DisplayName("User 저장 및 조회 테스트")
+    void 페르소나이다은() {
+        // given
+        JUser user = JUser.builder()
+                .username("e")
+                .password(passwordEncoder.encode("1234"))
+                .name("이다은")
+                .email("e@example.com")
+                .socialType("LOCAL")
+                .build();
+
+        // when
+        user.addRole(JMemberRole.USER);
+        JUser saved = jUserRepository.save(user);
+
+        assertThat(saved.getUserId()).isNotNull();
+        assertThat(jUserRepository.existsByUsername("e")).isTrue();
+    }
+
+    @Test
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
