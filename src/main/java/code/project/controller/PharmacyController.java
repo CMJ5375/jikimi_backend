@@ -21,6 +21,7 @@ public class PharmacyController {
 
     private final PharmacyService pharmacyService;
 
+    // 약국 검색 API (거리순 + 키워드 + 위치 + 즐겨찾기 + 페이징)
     @GetMapping("/search")
     public Page<PharmacyDTO> searchPharmacies(
             @RequestParam(required = false) String keyword,
