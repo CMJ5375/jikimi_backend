@@ -1,26 +1,47 @@
+// src/main/java/code/project/controller/FacilityBusinessHourController.java
 package code.project.controller;
 
+import code.project.domain.FacilityBusinessHour;
 import code.project.dto.FacilityBusinessHourDTO;
-import code.project.service.FacilityBusinessHourService;
+import code.project.repository.FacilityBusinessHourRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/project/facility")
 @RequiredArgsConstructor
 public class FacilityBusinessHourController {
 
-    private final FacilityBusinessHourService service;
+    private final FacilityBusinessHourRepository facilityBusinessHourRepository;
 
-    // 단일 조회 기능만 유지
+    /** 항상 200; 데이터 없거나 에러면 [] */
     @GetMapping("/{facilityId}/business-hours")
-    public ResponseEntity<List<FacilityBusinessHourDTO>> getBusinessHours(@PathVariable Long facilityId) {
-        return ResponseEntity.ok(service.getBusinessHours(facilityId));
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<FacilityBusinessHourDTO>> getFacilityBusinessHours(
+            @PathVariable Long facilityId
+    ) {
+        try {
+            List<FacilityBusinessHour> rows =
+                    facilityBusinessHourRepository.findByFacility_FacilityIdOrderByIdAsc(facilityId);
+
+            if (rows == null || rows.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            List<FacilityBusinessHourDTO> dto = rows.stream()
+                    .map(FacilityBusinessHourDTO::fromEntity)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            // 어떤 예외가 와도 프론트에는 200 + [] (500 방지)
+            return ResponseEntity.ok(Collections.emptyList());
+        }
     }
 }
