@@ -37,6 +37,17 @@ public class JUser {
     @Column(nullable = false, length = 100, unique = true)
     private String email;
 
+    // 프로필
+    @Column(length = 255)
+    private String profileImage;
+
+    public void updateProfile(String name, String address, Integer age, String profileImage) {
+        if (name != null) this.name = name;
+        if (address != null) this.address = address;
+        if (age != null) this.age = age;
+        if (profileImage != null) this.profileImage = profileImage;
+    }
+
     // 'LOCAL', 'KAKAO', 'GOOGLE' 중 하나
     @Column(nullable = false, length = 10)
     @Builder.Default

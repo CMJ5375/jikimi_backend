@@ -6,8 +6,10 @@ import code.project.dto.JUserModifyDTO;
 import code.project.service.JUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -47,5 +49,18 @@ public class JUserController {
         jUserService.modifyUser(jUserModifyDTO);
 
         return Map.of("result", "modify");
+    }
+
+    //프로필 업로드
+    @PatchMapping(value = "/project/user/profile/{username}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<JUserDTO> updateProfile(
+            @PathVariable String username,
+            @RequestPart(required = false) String name,
+            @RequestPart(required = false) String address,
+            @RequestPart(required = false) Integer age,
+            @RequestPart(required = false) MultipartFile image
+    ) {
+        JUserDTO dto = jUserService.updateProfile(username, name, address, age, image);
+        return ResponseEntity.ok(dto);
     }
 }
