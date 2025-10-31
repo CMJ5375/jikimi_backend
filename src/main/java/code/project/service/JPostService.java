@@ -43,6 +43,9 @@ public interface JPostService {
     // 좋아요 유저
     boolean isUserLiked(Long postId, String username);
 
+    // 상단 고정 인기글(최대 5개) 조회
+    List<JPostDTO> getHotPins();
+
     // ====== Mapper ======
 
     // Entity -> DTO

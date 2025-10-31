@@ -11,6 +11,7 @@ import code.project.repository.JCommentRepository;
 import code.project.repository.JPostLikeRepository;
 import code.project.repository.JPostRepository;
 import code.project.repository.JUserRepository;
+import code.project.service.hotpin.HotPinManager;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -36,6 +35,12 @@ public class JPostServiceImpl implements JPostService {
     private final JUserRepository jUserRepository; // ← User만 유지
     private final JPostLikeRepository jPostLikeRepository;
     private final JCommentRepository jCommentRepository;
+
+    // 메모리 인기글 큐 주입
+    private final HotPinManager hotPinManager;
+    // 좋아요 3개 이상이면 인기글로
+    private static final int HOT_THRESHOLD = 3;
+
     // 조회
     @Override
     @Transactional(readOnly = true)
@@ -167,6 +172,11 @@ public class JPostServiceImpl implements JPostService {
 
             jPostRepository.save(post);
 
+            // 좋아요가 3 미만이면 핀에서 제거
+            if (post.getLikeCount() < HOT_THRESHOLD) {
+                hotPinManager.removePin(post.getPostId());
+            }
+
         } else {
             // ==== 처음 누르는 경우 -> 추가 ====
 
@@ -179,8 +189,12 @@ public class JPostServiceImpl implements JPostService {
 
             int current = (post.getLikeCount() == null ? 0 : post.getLikeCount());
             post.setLikeCount(current + 1);
-
             jPostRepository.save(post);
+
+            // 좋아요가 3 이상이면 인기글 큐에 등록
+            if (post.getLikeCount() >= HOT_THRESHOLD) {
+                hotPinManager.addPinIfAbsent(post.getPostId());
+            }
         }
     }
 
@@ -325,5 +339,21 @@ public class JPostServiceImpl implements JPostService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    // 상단 고정 인기글 조회
+    @Override
+    @Transactional(readOnly = true)
+    public List<JPostDTO> getHotPins() {
+        List<Long> ids = hotPinManager.getPinsNewestFirst();
+        if (ids.isEmpty()) return List.of();
+        Map<Long, JPost> map = new HashMap<>();
+        jPostRepository.findAllById(ids).forEach(p -> map.put(p.getPostId(), p));
+        List<JPostDTO> list = new ArrayList<>();
+        for (Long id : ids) {
+            JPost p = map.get(id);
+            if (p != null) list.add(entityToDTO(p));
+        }
+        return list;
     }
 }
