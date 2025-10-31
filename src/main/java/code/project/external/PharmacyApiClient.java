@@ -48,7 +48,6 @@ public class PharmacyApiClient {
                     return res.bodyToMono(String.class)
                             .defaultIfEmpty("")
                             .flatMap(body -> {
-                                log.error("PHARM API non-2xx: status={} body={}", res.statusCode(), body);
                                 return Mono.error(new IllegalStateException("PHARM API error: " + res.statusCode().value()));
                             });
                 })
@@ -72,7 +71,6 @@ public class PharmacyApiClient {
                         res.bodyToMono(String.class)
                                 .defaultIfEmpty("")
                                 .map(body -> {
-                                    log.info("PHARM RAW status={} body={}", res.statusCode(), body);
                                     return body;
                                 })
                 );

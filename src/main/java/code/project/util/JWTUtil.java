@@ -33,7 +33,7 @@ public class JWTUtil {
         }
     }
 
-    // ✅ 토큰 검증 및 클레임 반환
+    // 토큰 검증 및 클레임 반환
     public static Map<String, Object> validateToken(String token) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes("UTF-8"));
@@ -60,7 +60,7 @@ public class JWTUtil {
         }
     }
 
-    // ✅ 만료된 토큰에서 클레임 추출 (refresh 용)
+    //  만료된 토큰에서 클레임 추출 (refresh 용)
     public static Map<String, Object> getClaimsFromExpiredToken(String token) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes("UTF-8"));
@@ -71,7 +71,7 @@ public class JWTUtil {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            // ✅ 만료된 경우에도 claims는 유효함
+            // 만료된 경우에도 claims는 유효함
             return e.getClaims();
         } catch (Exception e) {
             throw new CustomJWTException("InvalidToken", e);
