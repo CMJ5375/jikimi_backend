@@ -47,10 +47,10 @@ class JUserRepositoryTest {
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
-                .username("test4")
+                .username("adminer")
                 .password(passwordEncoder.encode("1234"))
                 .name("관리자")
-                .email("test4@aaa.com")
+                .email("adminer@aaa.com")
                 .socialType("LOCAL")
                 .build();
 
@@ -59,14 +59,14 @@ class JUserRepositoryTest {
         jUserRepository.save(admin);
 
         // then
-        assertThat(jUserRepository.existsByUsername("test4")).isTrue();
+        assertThat(jUserRepository.existsByUsername("adminer")).isTrue();
 //        log.info("관리자 계정 저장 완료: {}", admin);
     }
 
     @Test
     @DisplayName("사용자 조회 테스트 (권한 포함)")
     void findUserWithRoles() {
-        String username = "test4";
+        String username = "adminer";
         JUser user = jUserRepository.getwithRoles(username);
 
         if (user != null) {

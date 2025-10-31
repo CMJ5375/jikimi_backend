@@ -35,6 +35,12 @@ public class JPostController {
     private final JUserRepository jUserRepository;
     private final JPostLikeRepository jPostLikeRepository;
 
+    // 전체 탭 상단 고정 인기글 반환
+    @GetMapping("/hot/pins")
+    public ResponseEntity<List<JPostDTO>> getHotPins() {
+        List<JPostDTO> pins = jPostService.getHotPins();
+        return ResponseEntity.ok(pins);
+    }
 
     // 목록 (페이징)
     @GetMapping("/list")
