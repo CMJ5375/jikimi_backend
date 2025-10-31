@@ -16,7 +16,7 @@ public class MailService {
     private final JavaMailSender mailSender;
 
     private static final String FROM_EMAIL = "dodojun0913@gmail.com";
-    private static final String FROM_NAME  = "(주) 열려있나요?";
+    private static final String FROM_NAME  = "열려있나요?프로젝트 메일";
 
     /** 제목을 '인증번호 123456' 형태로 전송 */
     public void sendCode(String to, String code) {

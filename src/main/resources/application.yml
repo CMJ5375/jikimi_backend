@@ -8,7 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update  #create update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -29,12 +29,29 @@ org:
     security:
       web: trace
 
-logging.level:
-  org.hibernate.SQL: debug
-  org.hibernate.orm.jdbc.bind: trace
-  org.springframework.security.web: trace
-  org.springframework.web: debug
-  org.springframework.http.converter: trace
+logging:
+  level:
+    root: INFO
+
+    # Hibernate
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그 끔(가장 시끄러움)
+
+    # Spring Security & Web
+    org.springframework.security: INFO
+    org.springframework.security.web: INFO
+    org.springframework.web: INFO
+    org.springframework.web.servlet.DispatcherServlet: INFO
+
+    # 메시지 컨버터/HTTP 로깅
+    org.springframework.http.converter: WARN
+    org.springframework.web.reactive.function.client: INFO
+    org.springframework.web.HttpLogging: WARN
+    reactor.netty: WARN
+
+    # 당신의 앱 패키지
+    code.project: INFO
+#logging.level: org.hibernate.SQL: debug org.hibernate.orm.jdbc.bind: trace org.springframework.security.web: trace org.springframework.web: debug org.springframework.http.converter: trace 지금은 디버그 쪽 없애서 만약 콘솔로그 좀 자세히 보고싶으면 여기 주석해제해서 위에꺼랑 바꿔치기 하면됩니다.
 
 kakao:
   api:
