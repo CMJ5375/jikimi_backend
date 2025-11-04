@@ -31,17 +31,17 @@ public class JSupportController {
     }
 
     // 글쓰기
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ADMIN')")
     @PostMapping("/{type}")
     public ResponseEntity<Long> create(@PathVariable String type,
                                        @RequestBody JSupportDTO dto,
-                                       @RequestParam Long adminId) {
+                                       @RequestParam(required = false) Long adminId) {
         dto.setType(type.toUpperCase());
         return ResponseEntity.ok(service.create(dto, adminId));
     }
 
     // 수정
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ADMIN')")
     @PutMapping("/{type}/{id}")
     public ResponseEntity<Void> update(@PathVariable String type,
                                        @PathVariable Long id,
@@ -54,7 +54,7 @@ public class JSupportController {
     }
 
     // 삭제
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ADMIN')")
     @DeleteMapping("/{type}/{id}")
     public ResponseEntity<Void> delete(@PathVariable String type,
                                        @PathVariable Long id,
@@ -64,7 +64,7 @@ public class JSupportController {
     }
 
     // 상단 고정
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ADMIN')")
     @PostMapping("/{type}/{id}/pin")
     public ResponseEntity<Void> pin(@PathVariable String type,
                                     @PathVariable Long id,
@@ -74,7 +74,7 @@ public class JSupportController {
     }
 
     // 상단 고정 해제
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ADMIN')")
     @DeleteMapping("/{type}/{id}/unpin")
     public ResponseEntity<Void> unpin(@PathVariable String type,
                                       @PathVariable Long id,

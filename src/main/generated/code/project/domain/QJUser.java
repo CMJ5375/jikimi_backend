@@ -32,6 +32,8 @@ public class QJUser extends EntityPathBase<JUser> {
 
     public final StringPath password = createString("password");
 
+    public final StringPath profileImage = createString("profileImage");
+
     public final StringPath socialType = createString("socialType");
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
