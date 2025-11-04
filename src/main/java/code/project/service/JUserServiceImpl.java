@@ -185,15 +185,13 @@ public class JUserServiceImpl implements JUserService {
     @Transactional
     @Override
     public JUserDTO updateProfile(String username, String name, String address, Integer age, MultipartFile image) {
-        JUser user = jUserRepository
-                .getCodeUserByUsername(username)
+        JUser user = jUserRepository.getCodeUserByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
-        // 1) 이미지 업로드 (선택)
         String imageUrl = null;
+
         try {
             if (image != null && !image.isEmpty()) {
-                // ▼ 로컬 저장 폴더 (원하면 application.yml 로 뺄 수 있음)
                 Path base = Paths.get(System.getProperty("user.home"), "app-uploads", "profiles", String.valueOf(user.getUserId()));
                 Files.createDirectories(base);
 
@@ -201,18 +199,16 @@ public class JUserServiceImpl implements JUserService {
                 Path target = base.resolve(filename);
                 Files.write(target, image.getBytes());
 
-                // 프론트에서 접근 가능한 URL 규칙에 맞게 변환(예: 정적 리소스 매핑/CloudFront 등)
-                // 지금은 로컬 경로를 일단 넣어둠 → 운영에서는 S3 URL 등으로 교체
-                imageUrl = "/static/profiles/" + user.getUserId() + "/" + filename;
+                imageUrl = "/uploads/profiles/" + user.getUserId() + "/" + filename;
             }
         } catch (Exception e) {
             throw new RuntimeException("프로필 이미지 업로드 실패", e);
         }
 
-        // 2) 엔티티 수정(널이면 기존 유지)
+        // null(미전달)은 기존 값 유지
         user.updateProfile(name, address, age, imageUrl);
+        jUserRepository.save(user);
 
-        // 3) 응답 DTO (기존 entityToDTO 재사용 + profileImage만 세터로)
         JUserDTO dto = entityToDTO(user);
         dto.setProfileImage(user.getProfileImage());
         return dto;

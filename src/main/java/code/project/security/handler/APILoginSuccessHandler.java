@@ -27,6 +27,9 @@ public class APILoginSuccessHandler implements AuthenticationSuccessHandler {
         //사용자의 클레임데이터를 가져온다.
         Map<String, Object> claims = JUserDTO.getClaims();
 
+        // ✅ ★ profileImage 넣기 (없으면 빈 문자열 방지)
+        claims.put("profileImage", JUserDTO.getProfileImage());
+
         //JWTUtil을 이용해서 Access Token과 Refresh Token생성한다.
         String accessToken = JWTUtil.generateToken(claims, 10);
         String refreshToken = JWTUtil.generateToken(claims, 60 * 24);

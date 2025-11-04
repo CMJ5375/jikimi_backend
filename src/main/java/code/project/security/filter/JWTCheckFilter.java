@@ -67,6 +67,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
             String name     = (String) claims.get("name");
             String address  = (String) claims.get("address");
             String email    = (String) claims.get("email");
+            String profileImage = (String) claims.get("profileImage"); //읽기 ★
             @SuppressWarnings("unchecked")
             List<String> roleNames = (List<String>) claims.get("roleNames");
 
@@ -79,7 +80,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
             // 이미 인증돼 있지 않을 때만 세팅
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                JUserDTO principal = new JUserDTO(username, password, name, address, age, email, roleNames);
+                JUserDTO principal = new JUserDTO(username, password, name, address, age, email, profileImage, roleNames);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
