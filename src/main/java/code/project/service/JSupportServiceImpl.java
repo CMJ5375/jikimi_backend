@@ -35,6 +35,7 @@ public class JSupportServiceImpl implements JSupportService {
                 .pinnedCopy(e.isPinnedCopy())
                 .originalId(e.getOriginalId())
                 .viewCount(e.getViewCount())
+                .likeCount(e.getLikeCount())
                 .createdAt(e.getCreatedAt())
                 .userId(e.getJUser().getUserId())
                 .username(e.getJUser().getUsername())
@@ -57,10 +58,15 @@ public class JSupportServiceImpl implements JSupportService {
 
     @Override
     public JSupportDTO get(Long id, boolean increaseView) {
-        JSupport entity = supportRepo.findById(id).orElseThrow();
-        if (increaseView && (entity.getType().equals("notice") || entity.getType().equals("dataroom"))) {
+        JSupport entity = supportRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Support not found: " + id));
+        if (increaseView && ("notice".equalsIgnoreCase(entity.getType())
+                || "dataroom".equalsIgnoreCase(entity.getType()))) {
             entity.setViewCount(entity.getViewCount() + 1);
         }
+        long likeCount = supportLikeRepository.countBySupport_SupportId(entity.getSupportId());
+        entity.setLikeCount((int) likeCount);
+
         return toDTO(entity);
     }
 
@@ -140,22 +146,24 @@ public class JSupportServiceImpl implements JSupportService {
     @Override
     @Transactional
     public LikeResult toggleSupportLike(Long supportId, Long userId) {
-        if (supportId == null) throw new IllegalArgumentException("supportId required");
-        if (userId == null) throw new IllegalArgumentException("userId required");
+        if (supportId == null || userId == null)
+            throw new IllegalArgumentException("supportId/userId required");
 
         JSupport support = supportRepo.findById(supportId)
-                .orElseThrow(() -> new IllegalArgumentException("Support not found: " + supportId));
+                .orElseThrow(() -> new NoSuchElementException("Support not found: " + supportId));
 
         JUser user = userRepo.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
 
         var existing = supportLikeRepository.findBySupport_SupportIdAndUser_UserId(supportId, userId);
-        final boolean nowLiked;
+        boolean nowLiked;
 
         if (existing.isPresent()) {
+            // 이미 좋아요 되어 있으면 삭제
             supportLikeRepository.delete(existing.get());
             nowLiked = false;
         } else {
+            // 처음 좋아요 누름
             JSupportLike like = JSupportLike.builder()
                     .support(support)
                     .user(user)
@@ -163,7 +171,6 @@ public class JSupportServiceImpl implements JSupportService {
             supportLikeRepository.save(like);
             nowLiked = true;
         }
-
         long cnt = supportLikeRepository.countBySupport_SupportId(supportId);
         support.setLikeCount((int) cnt);
 

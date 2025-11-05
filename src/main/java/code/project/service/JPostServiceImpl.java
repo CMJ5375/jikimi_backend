@@ -103,7 +103,7 @@ public class JPostServiceImpl implements JPostService {
             post.setFileUrl(dto.getFileUrl());
         }
         // likeCount, isDeleted 같은 건 일반 수정 화면에서 바꿀 일 없으면 안 건드려도 돼
-        // post.setLikeCount(...) 이런 건 빼도 됨
+        // post.setSupportLikeCount(...) 이런 건 빼도 됨
 
         // 변경 저장
         jPostRepository.save(post);

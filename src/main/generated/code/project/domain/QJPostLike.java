@@ -22,9 +22,9 @@ public class QJPostLike extends EntityPathBase<JPostLike> {
 
     public static final QJPostLike jPostLike = new QJPostLike("jPostLike");
 
-    public final NumberPath<Long> id = createNumber("id", Long.class);
-
     public final QJPost post;
+
+    public final NumberPath<Long> postLikeCount = createNumber("postLikeCount", Long.class);
 
     public final QJUser user;
 

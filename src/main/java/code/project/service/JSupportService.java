@@ -21,16 +21,16 @@ public interface JSupportService {
 
     // 좋아요 결과 DTO
     class LikeResult {
-        private final int likeCount;
+        private final int supportLikeCount;
         private final boolean liked;
 
         public LikeResult(int likeCount, boolean liked) {
-            this.likeCount = likeCount;
+            this.supportLikeCount = likeCount;
             this.liked = liked;
         }
 
         public int getLikeCount() {
-            return likeCount;
+            return supportLikeCount;
         }
 
         public boolean isLiked() {
