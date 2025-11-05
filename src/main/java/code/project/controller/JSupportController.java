@@ -4,9 +4,14 @@ import code.project.dto.JSupportDTO;
 import code.project.service.JSupportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/project/support")
@@ -36,7 +41,7 @@ public class JSupportController {
     public ResponseEntity<Long> create(@PathVariable String type,
                                        @RequestBody JSupportDTO dto,
                                        @RequestParam(required = false) Long adminId) {
-        dto.setType(type.toUpperCase());
+        dto.setType(type.toLowerCase());
         return ResponseEntity.ok(service.create(dto, adminId));
     }
 
@@ -81,5 +86,58 @@ public class JSupportController {
                                       @RequestParam Long adminId) {
         service.unpin(id, adminId);
         return ResponseEntity.ok().build();
+    }
+
+    // 좋아요 토글
+    @PostMapping("/{type}/{id}/like")
+    public ResponseEntity<?> toggleLike(
+            @PathVariable String type,
+            @PathVariable Long id,
+            @RequestParam(required = false) Long userId,
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+        // principal에서 userId를 가져오거나, RequestParam에서 받음
+        Long finalUserId = userId;
+
+        // principal이 있다면 거기서 ID 추출 (UserDetails 커스텀 클래스 사용 시 수정)
+        if (finalUserId == null && principal != null) {
+            try {
+                // principal.getUsername()이 실제 userId(String)이라면 변환
+                finalUserId = Long.parseLong(principal.getUsername());
+            } catch (NumberFormatException ignore) {
+                // username이 실제 userId가 아닐 수도 있음 (그럼 프론트에서 userId를 보내야 함)
+            }
+        }
+
+        if (finalUserId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        var result = service.toggleSupportLike(id, finalUserId);
+        return ResponseEntity.ok(Map.of(
+                "likeCount", result.getLikeCount(),
+                "liked", result.isLiked()
+        ));
+    }
+
+    // 좋아요 상태 조회
+    @GetMapping("/{type}/{id}/like/status")
+    public ResponseEntity<?> likeStatus(
+            @PathVariable String type,
+            @PathVariable Long id,
+            @RequestParam(required = false) Long userId,
+            @AuthenticationPrincipal UserDetails principal
+    ) {
+        Long finalUserId = userId;
+
+        if (finalUserId == null && principal != null) {
+            try {
+                finalUserId = Long.parseLong(principal.getUsername());
+            } catch (NumberFormatException ignore) {}
+        }
+
+        boolean liked = (finalUserId != null) && service.isSupportLikedByUser(id, finalUserId);
+        return ResponseEntity.ok(Map.of("liked", liked));
     }
 }

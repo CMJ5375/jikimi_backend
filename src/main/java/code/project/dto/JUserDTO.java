@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 @Setter
 @ToString
 public class JUserDTO extends User {
+    private Long userId;
     private String username, password, name, address, email, profileImage;
     private Integer age;
     private List<String> roleNames = new ArrayList<>();
 
-    // 신규: profileImage 포함 생성자 (이미 있음)
     public JUserDTO(String username, String password, String name, String address,
                     Integer age, String email, String profileImage, List<String> roleNames) {
         super(
@@ -45,8 +45,16 @@ public class JUserDTO extends User {
         this(username, password, name, address, age, email, null, roleNames);
     }
 
+    // id(userId) 필드 추가
+    public JUserDTO(Long userId, String username, String password, String name, String address,
+                    Integer age, String email, String profileImage, List<String> roleNames) {
+        this(username, password, name, address, age, email, profileImage, roleNames);
+        this.userId = userId;
+    }
+
     public Map<String, Object> getClaims() {
         Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("userId", userId);
         dataMap.put("username", username);
         dataMap.put("password", password);
         dataMap.put("name", name);

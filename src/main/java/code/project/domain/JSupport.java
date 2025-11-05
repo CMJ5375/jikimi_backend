@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-@ToString(exclude = "JUser")
+@ToString(exclude = {"JUser", "likes"})
 public class JSupport {
 
     @Id
@@ -58,9 +58,22 @@ public class JSupport {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // 좋아요
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer likeCount;
+
     @PrePersist
     void onCreate() {
         if (viewCount == null) viewCount = 0;
+        if (likeCount == null) likeCount = 0;
         if (createdAt == null) createdAt = LocalDateTime.now();
+    }
+
+    public Integer getLikeCount() {
+        return likeCount == null ? 0 : likeCount;
+    }
+
+    public void setLikeCount(Integer likeCount) {
+        this.likeCount = (likeCount == null ? 0 : likeCount);
     }
 }

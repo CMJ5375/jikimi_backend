@@ -140,7 +140,6 @@ class JUserRepositoryTest {
 
         // then
         assertThat(jUserRepository.existsByUsername("adminer")).isTrue();
-//        log.info("관리자 계정 저장 완료: {}", admin);
     }
 
     @Test
