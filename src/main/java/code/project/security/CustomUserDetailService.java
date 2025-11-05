@@ -36,6 +36,7 @@ public class CustomUserDetailService implements UserDetailsService {
                 JUser.getAddress(),
                 JUser.getAge(),
                 JUser.getEmail(),
+                JUser.getProfileImage(),
                 JUser.getJMemberRoleList().stream().map(memberRole -> memberRole.name()).collect(Collectors.toList())
         );
         log.info("로그인한 멤버 {}", JUserDTO);
