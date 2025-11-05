@@ -29,12 +29,14 @@ public class JSupportController {
                                   @RequestParam(required = false) String keyword,
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "10") int size) {
-        return service.list(type.toUpperCase(), keyword, page, size);
+        type = type.toUpperCase();
+        return service.list(type, keyword, page, size);
     }
 
     // 조회
     @GetMapping("/{type}/{id}")
     public JSupportDTO get(@PathVariable String type, @PathVariable Long id) {
+        type = type.toUpperCase();
         return service.get(id, true);
     }
 
@@ -44,7 +46,7 @@ public class JSupportController {
     public ResponseEntity<Long> create(@PathVariable String type,
                                        @RequestBody JSupportDTO dto,
                                        @RequestParam(required = false) Long adminId) {
-        dto.setType(type.toLowerCase());
+        dto.setType(type.toUpperCase());
         return ResponseEntity.ok(service.create(dto, adminId));
     }
 
@@ -67,6 +69,7 @@ public class JSupportController {
     public ResponseEntity<Void> delete(@PathVariable String type,
                                        @PathVariable Long id,
                                        @RequestParam Long adminId) {
+        type = type.toUpperCase();
         service.delete(id, adminId);
         return ResponseEntity.ok().build();
     }
@@ -77,6 +80,7 @@ public class JSupportController {
     public ResponseEntity<Void> pin(@PathVariable String type,
                                     @PathVariable Long id,
                                     @RequestParam Long adminId) {
+        type = type.toUpperCase();
         service.pin(id, adminId);
         return ResponseEntity.ok().build();
     }
@@ -101,6 +105,7 @@ public class JSupportController {
             @RequestParam(name = "userId", required = false) Long userIdFromQuery,
             @AuthenticationPrincipal UserDetails principal
     ) {
+        type = type.toUpperCase();
         Long finalUserId = null;
 
         if (body != null && body.get("userId") != null) {
@@ -153,6 +158,7 @@ public class JSupportController {
             @RequestBody(required = false) Map<String, Object> body,
             @AuthenticationPrincipal UserDetails principal
     ) {
+        type = type.toUpperCase();
         Long finalUserId = null;
 
         if (body != null && body.get("userId") != null) {

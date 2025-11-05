@@ -61,11 +61,10 @@ public class CustomSecurityConfig {
                 .requestMatchers("/project/map/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/project/support/**").permitAll()
                 // 로그인 사용자만 좋아요 가능하도록 별도 예외 허용
-                .requestMatchers(HttpMethod.POST, "/project/support/**/like/**").authenticated()
-                .requestMatchers(HttpMethod.GET, "/project/support/**/like/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/project/support/*/like/*").authenticated()
                 // 그 외 support 관련 POST/PUT/DELETE는 ADMIN만
-                .requestMatchers(HttpMethod.POST, "/project/support/**")
-                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
+//                .requestMatchers(HttpMethod.POST, "/project/support/**")
+//                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/project/support/**")
                 .hasAnyAuthority("ROLE_ADMIN","ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/project/support/**")

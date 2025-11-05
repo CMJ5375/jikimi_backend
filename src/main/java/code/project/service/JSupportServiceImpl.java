@@ -46,11 +46,13 @@ public class JSupportServiceImpl implements JSupportService {
     @Transactional(readOnly = true)
     public Page<JSupportDTO> list(String type, String keyword, int page, int size) {
         // ✅ 프런트가 1부터 보내면 0으로 보정
-        int p = Math.max(page - 1, 0);
-
-        Pageable pageable = PageRequest.of(p, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+//        int p = Math.max(page - 1, 0);
+//
+//        Pageable pageable = PageRequest.of(p, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<JSupport> result;
+        Pageable pageable = PageRequest.of(Math.max(0, page), size);
+
         if (keyword == null || keyword.trim().isEmpty()) {
             result = supportRepo.findByTypeOrderByPinned(type, pageable);
         } else {
