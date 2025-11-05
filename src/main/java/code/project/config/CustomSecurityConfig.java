@@ -6,6 +6,7 @@ import code.project.security.handler.APILoginSuccessHandler;
 import code.project.security.handler.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -43,6 +44,7 @@ public class CustomSecurityConfig {
         http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
 
         http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 .requestMatchers("/api/account/**").permitAll()
                 .requestMatchers("/api/password/**").permitAll()
                 .requestMatchers("/project/register").permitAll()
@@ -55,6 +57,7 @@ public class CustomSecurityConfig {
                 .requestMatchers("/project/realtime/**").permitAll()
                 .requestMatchers("/files/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers("/default-profile.png").permitAll()
                 .requestMatchers("/project/map/**").permitAll()
                 .anyRequest().authenticated()
         );
