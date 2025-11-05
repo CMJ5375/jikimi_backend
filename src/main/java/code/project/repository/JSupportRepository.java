@@ -11,13 +11,17 @@ import java.util.List;
 public interface JSupportRepository extends JpaRepository<JSupport, Long> {
 
     // type 기준 목록 조회
-    @Query("SELECT s FROM JSupport s WHERE s.type = :type ORDER BY s.pinnedCopy DESC, s.createdAt DESC")
+    @Query("""
+        SELECT s FROM JSupport s 
+        WHERE LOWER(s.type) = LOWER(:type)
+        ORDER BY s.pinnedCopy DESC, s.createdAt DESC
+    """)
     Page<JSupport> findByTypeOrderByPinned(String type, Pageable pageable);
 
     // type + keyword 검색
     @Query("""
         SELECT s FROM JSupport s
-        WHERE s.type = :type
+        WHERE LOWER(s.type) = LOWER(:type)
         AND (
              LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
              OR s.content LIKE CONCAT('%', :keyword, '%')

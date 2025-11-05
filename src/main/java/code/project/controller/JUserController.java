@@ -23,6 +23,11 @@ public class JUserController {
 
     private final JUserService jUserService;
 
+    // 로그인 상태 확인용
+    @GetMapping("/project/user/login")
+    public ResponseEntity<String> checkLogin() {
+        return ResponseEntity.ok("ok");
+    }
 
     // 회원가입
     @PostMapping("/project/register")

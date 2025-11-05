@@ -59,6 +59,14 @@ public class CustomSecurityConfig {
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/default-profile.png").permitAll()
                 .requestMatchers("/project/map/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/project/support/**").permitAll()
+                // POST/PUT/DELETE는 ADMIN 권한 필요 (ROLE_ 접두/무접두 모두 허용)
+                .requestMatchers(HttpMethod.POST, "/project/support/**")
+                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/project/support/**")
+                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/project/support/**")
+                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
                 .anyRequest().authenticated()
         );
 
@@ -105,5 +113,4 @@ public class CustomSecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

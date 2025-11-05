@@ -30,6 +30,7 @@ public class CustomUserDetailService implements UserDetailsService {
         }
 
         JUserDTO JUserDTO = new JUserDTO(
+                JUser.getUserId(),
                 JUser.getUsername(),
                 JUser.getPassword(),
                 JUser.getName(),
@@ -37,7 +38,10 @@ public class CustomUserDetailService implements UserDetailsService {
                 JUser.getAge(),
                 JUser.getEmail(),
                 JUser.getProfileImage(),
-                JUser.getJMemberRoleList().stream().map(memberRole -> memberRole.name()).collect(Collectors.toList())
+                JUser.getJMemberRoleList()
+                        .stream()
+                        .map(memberRole -> memberRole.name())
+                        .collect(Collectors.toList())
         );
         log.info("로그인한 멤버 {}", JUserDTO);
         return JUserDTO;

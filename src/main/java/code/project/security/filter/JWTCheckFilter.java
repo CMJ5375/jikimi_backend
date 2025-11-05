@@ -1,6 +1,7 @@
 package code.project.security.filter;
 
 import code.project.dto.JUserDTO;
+import code.project.util.CustomJWTException;
 import code.project.util.JWTUtil;
 import com.google.gson.Gson;
 import jakarta.servlet.FilterChain;
@@ -88,14 +89,26 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (Exception e) {
+        }
+        // JWT 관련 예외만 잡기
+        catch (CustomJWTException e) {
             log.info("JWT validation error: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json;charset=UTF-8");
-            String msg = new Gson().toJson(Map.of("error", "ERROR_ACCESS_TOKEN"));
-            try (PrintWriter out = response.getWriter()) {
-                out.println(msg);
-            }
+            handleJwtError(response);
+        }
+        // 나머지 예외는 JWT 에러로 오인하지 않고 그대로 던지기
+        catch (Exception e) {
+            log.error("Non-JWT exception in JWTCheckFilter: {}", e.getMessage(), e);
+            throw e; // 그대로 컨트롤러/전역예외로 전달
+        }
+    }
+
+    // 응답 헬퍼
+    private void handleJwtError(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        String msg = new Gson().toJson(Map.of("error", "ERROR_ACCESS_TOKEN"));
+        try (PrintWriter out = response.getWriter()) {
+            out.println(msg);
         }
     }
 }

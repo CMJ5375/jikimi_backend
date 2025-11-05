@@ -13,4 +13,28 @@ public interface JSupportService {
     void delete(Long id, Long adminId);
     void pin(Long id, Long adminId);
     void unpin(Long pinnedId, Long adminId);
+
+    // 좋아요 관련 메서드 (userId 기반)
+    LikeResult toggleSupportLike(Long supportId, Long userId);
+    boolean isSupportLikedByUser(Long supportId, Long userId);
+    int getSupportLikeCount(Long supportId);
+
+    // 좋아요 결과 DTO
+    class LikeResult {
+        private final int likeCount;
+        private final boolean liked;
+
+        public LikeResult(int likeCount, boolean liked) {
+            this.likeCount = likeCount;
+            this.liked = liked;
+        }
+
+        public int getLikeCount() {
+            return likeCount;
+        }
+
+        public boolean isLiked() {
+            return liked;
+        }
+    }
 }
