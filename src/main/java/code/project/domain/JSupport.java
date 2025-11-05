@@ -21,7 +21,7 @@ public class JSupport {
     @JoinColumn(name = "user_id", nullable = false)
     private JUser JUser;
 
-    // 어떤 종류인지 구분 (NOTICE / FAQ / DATAROOM)
+    // 어떤 종류인지 구분
     @Column(nullable = false, length = 20)
     private String type;
 

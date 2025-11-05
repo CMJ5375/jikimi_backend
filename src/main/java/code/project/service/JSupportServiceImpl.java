@@ -46,7 +46,7 @@ public class JSupportServiceImpl implements JSupportService {
     @Transactional(readOnly = true)
     public Page<JSupportDTO> list(String type, String keyword, int page, int size) {
         Page<JSupport> result;
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(Math.max(0, page), size);
 
         if (keyword == null || keyword.trim().isEmpty()) {
             result = supportRepo.findByTypeOrderByPinned(type, pageable);
@@ -108,13 +108,31 @@ public class JSupportServiceImpl implements JSupportService {
 
     @Override
     public void delete(Long id, Long adminId) {
-        supportRepo.deleteById(id);
+        JSupport entity = supportRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Support not found: " + id));
+
+        // 원본글인 경우 연결된 복제본도 함께 삭제
+        if (!entity.isPinnedCopy()) {
+            List<JSupport> copies = supportRepo.findAll()
+                    .stream()
+                    .filter(s -> s.getOriginalId() != null && s.getOriginalId().equals(id))
+                    .toList();
+
+            for (JSupport copy : copies) {
+                supportRepo.delete(copy);
+            }
+        }
+        supportRepo.delete(entity);
     }
 
     @Override
     public void pin(Long id, Long adminId) {
         JSupport origin = supportRepo.findById(id).orElseThrow();
         String type = origin.getType();
+
+        // 원본 글도 pinned 상태로 표시되게 변경
+        origin.setPinnedCopy(true);
+        supportRepo.save(origin);
 
         long count = supportRepo.countByTypeAndPinnedCopyTrue(type);
         if (count >= 5) {
@@ -137,9 +155,13 @@ public class JSupportServiceImpl implements JSupportService {
 
     @Override
     public void unpin(Long pinnedId, Long adminId) {
-        JSupport pinned = supportRepo.findById(pinnedId).orElseThrow();
-        if (!pinned.isPinnedCopy()) return;
-        supportRepo.delete(pinned);
+        JSupport pinned = supportRepo.findById(pinnedId)
+                .orElseThrow(() -> new NoSuchElementException("Pinned support not found: " + pinnedId));
+
+        // 복제본만 삭제 (원본 삭제 금지)
+        if (pinned.isPinnedCopy()) {
+            supportRepo.delete(pinned);
+        }
     }
 
     // 좋아요 기능 (userId 기반)
