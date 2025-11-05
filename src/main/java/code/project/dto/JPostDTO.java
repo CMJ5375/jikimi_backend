@@ -20,6 +20,8 @@ public class JPostDTO {
         private Boolean isDeleted;
         private Integer viewCount;
         private Integer commentCount;
+        private String authorProfileImage; //마이페이지 프로필
+
         // 연관 객체는 ID나 이름만 노출
         private Long userId;
         private String authorName;

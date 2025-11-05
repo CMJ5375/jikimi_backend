@@ -75,6 +75,7 @@ public interface JPostService {
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)
                 .authorName(authorName) // 추가
                 .authorUsername(p.getUser() != null ? p.getUser().getUsername() : null) //(프론트에서 버튼 노출 조건 검사용)
+                .authorProfileImage(p.getUser().getProfileImage())
                 .build();
     }
 

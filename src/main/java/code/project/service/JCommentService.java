@@ -31,6 +31,8 @@ public interface JCommentService {
         if (c == null) return null;
 
         String authorName = "익명";
+        String authorProfileImage = "/default-profile.png";
+
         if (c.getUser() != null) {
             var u = c.getUser();
             if (u.getName() != null && !u.getName().isBlank()) {
@@ -39,6 +41,10 @@ public interface JCommentService {
                 authorName = u.getUsername();
             } else if (u.getEmail() != null && !u.getEmail().isBlank()) {
                 authorName = u.getEmail().split("@")[0];
+            }
+
+            if (u.getProfileImage() != null && !u.getProfileImage().isBlank()) {
+                authorProfileImage = u.getProfileImage();
             }
         }
 
@@ -49,6 +55,7 @@ public interface JCommentService {
                 .authorName(authorName)
                 .content(c.getContent())
                 .createdAt(c.getCreatedAt())
+                .authorProfileImage(authorProfileImage)
                 .build();
     }
 

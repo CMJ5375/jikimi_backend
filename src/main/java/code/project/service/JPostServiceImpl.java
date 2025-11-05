@@ -308,6 +308,7 @@ public class JPostServiceImpl implements JPostService {
                 .userId(p.getUser() != null ? p.getUser().getUserId() : null)
                 .authorName(authorName)
                 .authorUsername(p.getUser() != null ? p.getUser().getUsername() : null)
+                .authorProfileImage(p.getUser() != null ? p.getUser().getProfileImage() : null)
                 .likedUsernames(likedNames)
                 .build();
     }

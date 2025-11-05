@@ -4,6 +4,7 @@ import code.project.domain.BoardCategory;
 import code.project.domain.JPost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface JPostRepository extends JpaRepository<JPost, Long> {
@@ -91,4 +93,13 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
                             @Param("q") String q,
                             @Param("since") LocalDateTime since,
                             Pageable pageable);
+
+
+    // ✅ 단건 상세도 user 함께 로딩 (findById 오버라이드 or 별도 메소드)
+    @EntityGraph(attributePaths = "user")
+    Optional<JPost> findById(Long id);
+
+    // 또는 별도 이름으로
+    // @EntityGraph(attributePaths = "user")
+    // Optional<JPost> findWithUserByPostId(Long id);
 }

@@ -14,4 +14,5 @@ public class JCommentDTO {
     private String authorName; // UI 노출용 (username/name/email 앞부분)
     private String content;
     private LocalDateTime createdAt;
+    private String authorProfileImage; //마이페이지 프로필
 }
