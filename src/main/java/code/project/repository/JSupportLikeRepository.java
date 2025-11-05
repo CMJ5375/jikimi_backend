@@ -12,6 +12,4 @@ public interface JSupportLikeRepository extends JpaRepository<JSupportLike, Long
     long countBySupport_SupportId(Long supportId);
 
     boolean existsBySupport_SupportIdAndUser_UserId(Long supportId, Long userId);
-
-    void deleteBySupport_SupportIdAndUser_UserId(Long supportId, Long userId);
 }

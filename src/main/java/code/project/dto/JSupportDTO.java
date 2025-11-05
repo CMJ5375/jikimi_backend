@@ -18,6 +18,7 @@ public class JSupportDTO {
     private String fileUrl;             // 자료실 전용
     private boolean pinnedCopy;         // 상단 고정
     private Long originalId;            // 고정 사본 원본 ID
+    private Integer likeCount;          // 좋아요 수
     private Integer viewCount;          // 조회수
     private LocalDateTime createdAt;    // 날짜
     private Long userId;                // 작성자 ID (ADMIN)

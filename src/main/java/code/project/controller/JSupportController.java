@@ -3,6 +3,8 @@ package code.project.controller;
 import code.project.dto.JSupportDTO;
 import code.project.service.JSupportService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/project/support")
 @RequiredArgsConstructor
+@Slf4j
 public class JSupportController {
 
     private final JSupportService service;
@@ -89,55 +92,93 @@ public class JSupportController {
     }
 
     // 좋아요 토글
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{type}/{id}/like")
     public ResponseEntity<?> toggleLike(
             @PathVariable String type,
             @PathVariable Long id,
-            @RequestParam(required = false) Long userId,
+            @RequestBody(required = false) Map<String, Object> body,
+            @RequestParam(name = "userId", required = false) Long userIdFromQuery,
             @AuthenticationPrincipal UserDetails principal
     ) {
-        // principal에서 userId를 가져오거나, RequestParam에서 받음
-        Long finalUserId = userId;
+        Long finalUserId = null;
 
-        // principal이 있다면 거기서 ID 추출 (UserDetails 커스텀 클래스 사용 시 수정)
-        if (finalUserId == null && principal != null) {
+        if (body != null && body.get("userId") != null) {
             try {
-                // principal.getUsername()이 실제 userId(String)이라면 변환
-                finalUserId = Long.parseLong(principal.getUsername());
-            } catch (NumberFormatException ignore) {
-                // username이 실제 userId가 아닐 수도 있음 (그럼 프론트에서 userId를 보내야 함)
+                finalUserId = Long.valueOf(String.valueOf(body.get("userId")));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid userId in JSON body: {}", body.get("userId"));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "userId 형식이 올바르지 않습니다."));
             }
         }
 
-        if (finalUserId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "로그인이 필요합니다."));
+        if (finalUserId == null && userIdFromQuery != null) {
+            finalUserId = userIdFromQuery;
         }
 
-        var result = service.toggleSupportLike(id, finalUserId);
-        return ResponseEntity.ok(Map.of(
-                "likeCount", result.getLikeCount(),
-                "liked", result.isLiked()
-        ));
+        if (finalUserId == null) {
+            log.debug("toggleLike called without userId. principal={}", principal != null ? principal.getUsername() : "null");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "로그인이 필요합니다.", "reason", "userId missing"));
+        }
+
+        try {
+            var result = service.toggleSupportLike(id, finalUserId);
+            return ResponseEntity.ok(Map.of(
+                    "likeCount", result.getLikeCount(),
+                    "liked", result.isLiked()
+            ));
+        } catch (IllegalArgumentException e) {
+            log.warn("toggleLike bad request. id={}, userId={}, msg={}", id, finalUserId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (DataIntegrityViolationException e) {
+            log.warn("toggleLike constraint violation. id={}, userId={}", id, finalUserId, e);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "이미 처리되었습니다."));
+        } catch (Exception e) {
+            log.error("toggleLike internal error. id={}, userId={}", id, finalUserId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "서버 오류가 발생했습니다."));
+        }
     }
 
-    // 좋아요 상태 조회
+    // 좋아요 상태 조회 (비로그인 허용)
     @GetMapping("/{type}/{id}/like/status")
     public ResponseEntity<?> likeStatus(
             @PathVariable String type,
             @PathVariable Long id,
-            @RequestParam(required = false) Long userId,
+            @RequestParam(name = "userId", required = false) Long userIdFromQuery,
+            @RequestBody(required = false) Map<String, Object> body,
             @AuthenticationPrincipal UserDetails principal
     ) {
-        Long finalUserId = userId;
+        Long finalUserId = null;
 
-        if (finalUserId == null && principal != null) {
+        if (body != null && body.get("userId") != null) {
             try {
-                finalUserId = Long.parseLong(principal.getUsername());
-            } catch (NumberFormatException ignore) {}
+                finalUserId = Long.valueOf(String.valueOf(body.get("userId")));
+            } catch (NumberFormatException e) {
+                log.warn("Invalid userId in likeStatus body: {}", body.get("userId"));
+                // 상태 조회는 실패 대신 liked=false로 반환
+                return ResponseEntity.ok(Map.of("liked", false));
+            }
+        }
+        if (finalUserId == null && userIdFromQuery != null) {
+            finalUserId = userIdFromQuery;
         }
 
-        boolean liked = (finalUserId != null) && service.isSupportLikedByUser(id, finalUserId);
-        return ResponseEntity.ok(Map.of("liked", liked));
+        // userId가 없으면 비로그인 사용자로 간주 → liked=false
+        if (finalUserId == null) {
+            return ResponseEntity.ok(Map.of("liked", false));
+        }
+
+        try {
+            boolean liked = service.isSupportLikedByUser(id, finalUserId);
+            return ResponseEntity.ok(Map.of("liked", liked));
+        } catch (Exception e) {
+            log.warn("likeStatus error. id={}, userId={}", id, finalUserId, e);
+            return ResponseEntity.ok(Map.of("liked", false));
+        }
     }
 }
