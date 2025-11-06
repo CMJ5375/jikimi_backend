@@ -226,20 +226,22 @@ public class JPostServiceImpl implements JPostService {
         log.info("REQ sort={}, days={}", req.getSort(), req.getDays());
 
         Pageable pageable = popular
-                ? PageRequest.of(Math.max(req.getPage()-1,0), req.getSize(),
+                ? PageRequest.of(Math.max(req.getPage() - 1, 0), req.getSize(),
                 Sort.by(Sort.Order.desc("likeCount"),
                         Sort.Order.desc("viewCount"),
                         Sort.Order.desc("createdAt")))
-                : PageRequest.of(Math.max(req.getPage()-1,0), req.getSize(),
+                : PageRequest.of(Math.max(req.getPage() - 1, 0), req.getSize(),
                 Sort.by(Sort.Direction.DESC, "postId"));
 
         // 안전 파싱 (못 파싱하면 null)
         BoardCategory category = null;
-        if (req.getBoardCategory()!=null && !req.getBoardCategory().isBlank()) {
-            try { category = BoardCategory.valueOf(req.getBoardCategory().toUpperCase()); }
-            catch (Exception ignore) {}
+        if (req.getBoardCategory() != null && !req.getBoardCategory().isBlank()) {
+            try {
+                category = BoardCategory.valueOf(req.getBoardCategory().toUpperCase());
+            } catch (Exception ignore) {
+            }
         }
-        String q = (req.getQ()!=null && !req.getQ().isBlank()) ? req.getQ() : null;
+        String q = (req.getQ() != null && !req.getQ().isBlank()) ? req.getQ() : null;
 
         Page<JPost> page;
 
@@ -263,9 +265,24 @@ public class JPostServiceImpl implements JPostService {
             page = jPostRepository.findDefault(category, q, pageable);
         }
 
-        //log.info("RESULT total={}, pageSize={}", page.getTotalElements(), page.getNumberOfElements());
+        // 댓글 개수 맵 조회
+        var ids = page.getContent().stream().map(JPost::getPostId).toList();
+        var countMap = new HashMap<Long, Integer>();
+        if (!ids.isEmpty()) {
+            for (Object[] row : jCommentRepository.countGroupByPostIds(ids)) {
+                Long postId = (Long) row[0];
+                Long cnt = (Long) row[1];
+                countMap.put(postId, cnt.intValue());
+            }
+        }
 
-        var dtoList = page.getContent().stream().map(this::entityToDTO).toList();
+        // DTO 매핑 + 댓글 수 주입
+        var dtoList = page.getContent().stream().map(p -> {
+            var dto = entityToDTO(p);
+            dto.setCommentCount(countMap.getOrDefault(p.getPostId(), 0));
+            return dto;
+        }).toList();
+
         return PageResponseDTO.<JPostDTO>withAll()
                 .dtoList(dtoList)
                 .pageRequestDTO(req)
@@ -349,12 +366,28 @@ public class JPostServiceImpl implements JPostService {
     public List<JPostDTO> getHotPins() {
         List<Long> ids = hotPinManager.getPinsNewestFirst();
         if (ids.isEmpty()) return List.of();
+
         Map<Long, JPost> map = new HashMap<>();
         jPostRepository.findAllById(ids).forEach(p -> map.put(p.getPostId(), p));
+
+        // 댓글 수 조회
+        var countMap = new HashMap<Long, Integer>();
+        if (!ids.isEmpty()) {
+            for (Object[] row : jCommentRepository.countGroupByPostIds(ids)) {
+                Long postId = (Long) row[0];
+                Long cnt = (Long) row[1];
+                countMap.put(postId, cnt.intValue());
+            }
+        }
+
         List<JPostDTO> list = new ArrayList<>();
         for (Long id : ids) {
             JPost p = map.get(id);
-            if (p != null) list.add(entityToDTO(p));
+            if (p != null) {
+                var dto = entityToDTO(p);
+                dto.setCommentCount(countMap.getOrDefault(p.getPostId(), 0));
+                list.add(dto);
+            }
         }
         return list;
     }
