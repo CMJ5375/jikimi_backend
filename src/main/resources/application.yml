@@ -28,6 +28,13 @@ spring:
           starttls:
             enable: true
 
+file:
+  upload:
+    # 로컬(Windows/Mac) 기본 저장 경로: 사용자 홈 밑에 생성
+    support-dir: "${user.home}/jikimi_uploads/support"
+    # 정적 노출 URL prefix (WebConfig에서 사용)
+    public-url-prefix: "/files/"
+
 org:
   springframework:
     security:

@@ -56,6 +56,7 @@ public class CustomSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/project/facility/open-batch").permitAll()
                 .requestMatchers("/project/realtime/**").permitAll()
                 .requestMatchers("/files/**").permitAll()
+                .requestMatchers(HttpMethod.GET,"/project/support/download").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/default-profile.png").permitAll()
                 .requestMatchers("/project/map/**").permitAll()

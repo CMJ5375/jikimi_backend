@@ -12,7 +12,19 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.util.UriUtils;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +56,41 @@ public class JSupportController {
     // 글쓰기
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ADMIN')")
     @PostMapping("/{type}")
-    public ResponseEntity<Long> create(@PathVariable String type,
-                                       @RequestBody JSupportDTO dto,
-                                       @RequestParam(required = false) Long adminId) {
-        dto.setType(type.toUpperCase());
-        return ResponseEntity.ok(service.create(dto, adminId));
+    public ResponseEntity<Long> create(
+            @PathVariable String type,
+            @RequestParam("adminId") Long adminId,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+
+        String fileName = null; // <- 한번만 선언
+        String fileUrl  = null; // <- 한번만 선언
+
+        if (file != null && !file.isEmpty()) {
+            // 저장 폴더: {user.home}/app-uploads/support
+            Path uploadDir = Paths.get(System.getProperty("user.home"), "app-uploads", "support");
+            Files.createDirectories(uploadDir);
+
+            fileName = file.getOriginalFilename();      // <-- 재선언 금지 (String 제거)
+            Path target = uploadDir.resolve(fileName);
+            file.transferTo(target.toFile());
+
+            // URL에 들어갈 파일명은 인코딩해서 저장
+            String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+            fileUrl = "/uploads/support/" + encoded;    // <-- 재선언 금지 (String 제거)
+        }
+
+        JSupportDTO dto = JSupportDTO.builder()
+                .title(title)
+                .content(content)
+                .fileName(fileName)   // 화면 표시용 원본명
+                .fileUrl(fileUrl)     // 링크용(인코딩됨)
+                .type(type.toLowerCase()) // 서비스에서 소문자로 쓰니 맞춤
+                .build();
+
+        Long createdId = service.create(dto, adminId);
+        return ResponseEntity.ok(createdId);
     }
 
     // 수정
@@ -195,5 +237,30 @@ public class JSupportController {
             log.warn("likeStatus error. id={}, userId={}", id, finalUserId, e);
             return ResponseEntity.ok(Map.of("liked", false));
         }
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Resource> download(@PathVariable Long id) throws Exception {
+        // 1) 게시글 조회 (조회수 증가 X)
+        JSupportDTO dto = service.get(id, false);
+        if (dto.getFileName() == null || dto.getFileName().isBlank()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 2) 저장 폴더(작성 시와 동일 경로)
+        Path uploadDir = Paths.get(System.getProperty("user.home"), "app-uploads", "support");
+        Path path = uploadDir.resolve(dto.getFileName());
+
+        Resource file = new UrlResource(path.toUri());
+        if (!file.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // 3) 강제 다운로드 헤더
+        String encoded = UriUtils.encode(dto.getFileName(), StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encoded)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                .body(file);
     }
 }

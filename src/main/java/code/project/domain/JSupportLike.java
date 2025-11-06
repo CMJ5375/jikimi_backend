@@ -19,6 +19,7 @@ public class JSupportLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "support_like_number")
     private Long supportLikeNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
