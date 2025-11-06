@@ -158,7 +158,10 @@ class JSupportServiceImpl implements JSupportService {
                 .fileName(origin.getFileName())
                 .pinnedCopy(true)
                 .originalId(origin.getSupportId())
+                .viewCount(origin.getViewCount())
+                .likeCount(origin.getLikeCount())
                 .build();
+        copy.setCreatedAt(origin.getCreatedAt());
         supportRepo.save(copy);
     }
 
@@ -187,7 +190,23 @@ class JSupportServiceImpl implements JSupportService {
     @Transactional(readOnly = true)
     public List<JSupportDTO> getPinnedList(String type) {
         List<JSupport> pinned = supportRepo.findTop5ByTypeAndPinnedCopyIsTrueOrderByCreatedAtAsc(type);
-        return pinned.stream().map(this::toDTO).toList();
+
+        return pinned.stream().map(p -> {
+            JSupportDTO dto = toDTO(p);
+
+            // 복제글이면 원본글 데이터 병합
+            if (p.getOriginalId() != null) {
+                supportRepo.findById(p.getOriginalId()).ifPresent(origin -> {
+                    dto.setTitle(origin.getTitle());
+                    dto.setContent(origin.getContent());
+                    dto.setViewCount(origin.getViewCount());
+                    dto.setLikeCount(origin.getLikeCount());
+                    dto.setCreatedAt(origin.getCreatedAt());
+                });
+            }
+
+            return dto;
+        }).toList();
     }
 
     // 좋아요 기능 (userId 기반)
