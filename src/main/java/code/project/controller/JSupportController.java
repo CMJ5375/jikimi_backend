@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -93,6 +94,14 @@ public class JSupportController {
                                       @RequestParam Long adminId) {
         service.unpin(id, adminId);
         return ResponseEntity.ok().build();
+    }
+
+    // 상단 고정 리스트(다른 페이지에서도 보이게 할것)
+    @GetMapping("/{type}/pinned")
+    public ResponseEntity<List<JSupportDTO>> pinnedList(@PathVariable String type) {
+        type = type.toUpperCase();
+        List<JSupportDTO> list = service.getPinnedList(type);
+        return ResponseEntity.ok(list);
     }
 
     // 좋아요 토글

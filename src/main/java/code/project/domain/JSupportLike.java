@@ -19,7 +19,7 @@ public class JSupportLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long supportLikeCount;
+    private Long supportLikeNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
@@ -47,7 +47,7 @@ public class JSupportLike {
 
     @Override
     public String toString() {
-        return "JSupportLike(id=" + supportLikeCount +
+        return "JSupportLike(id=" + supportLikeNumber +
                 ", supportId=" + (support != null ? support.getSupportId() : null) +
                 ", userId=" + (user != null ? user.getUserId() : null) +
                 ")";

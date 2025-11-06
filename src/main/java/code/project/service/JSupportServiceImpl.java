@@ -18,7 +18,8 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class JSupportServiceImpl implements JSupportService {
+public 
+class JSupportServiceImpl implements JSupportService {
 
     private final JSupportRepository supportRepo;
     private final JUserRepository userRepo;
@@ -47,7 +48,6 @@ public class JSupportServiceImpl implements JSupportService {
     public Page<JSupportDTO> list(String type, String keyword, int page, int size) {
         // ✅ 프런트가 1부터 보내면 0으로 보정
 //        int p = Math.max(page - 1, 0);
-//
 //        Pageable pageable = PageRequest.of(p, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<JSupport> result;
@@ -113,20 +113,42 @@ public class JSupportServiceImpl implements JSupportService {
 
     @Override
     public void delete(Long id, Long adminId) {
-        supportRepo.deleteById(id);
+        JSupport entity = supportRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Support not found: " + id));
+
+        // 원본글 삭제 시 연결된 복제글(상단공지)도 함께 삭제
+        if (!entity.isPinnedCopy()) {
+            List<JSupport> copies = supportRepo.findAll()
+                    .stream()
+                    .filter(s -> s.getOriginalId() != null && s.getOriginalId().equals(id))
+                    .toList();
+            copies.forEach(supportRepo::delete);
+        }
+
+        supportRepo.delete(entity);
     }
 
     @Override
     public void pin(Long id, Long adminId) {
-        JSupport origin = supportRepo.findById(id).orElseThrow();
+        JSupport origin = supportRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Original support not found: " + id));
         String type = origin.getType();
 
+        // 이미 복제본이 존재하는지 확인
+        boolean alreadyPinned = supportRepo.existsByOriginalId(id);
+        if (alreadyPinned) {
+            // 이미 상단 고정된 복제글이 있다면 새로 만들지 않음
+            return;
+        }
+
+        // 복제글 최대 5개 유지하고 원본글은 그대로
         long count = supportRepo.countByTypeAndPinnedCopyTrue(type);
         if (count >= 5) {
             List<JSupport> olds = supportRepo.findTop5ByTypeAndPinnedCopyIsTrueOrderByCreatedAtAsc(type);
             if (!olds.isEmpty()) supportRepo.delete(olds.get(0));
         }
 
+        // 복제글(상단공지) 생성
         JSupport copy = JSupport.builder()
                 .JUser(origin.getJUser())
                 .type(type)
@@ -142,9 +164,30 @@ public class JSupportServiceImpl implements JSupportService {
 
     @Override
     public void unpin(Long pinnedId, Long adminId) {
-        JSupport pinned = supportRepo.findById(pinnedId).orElseThrow();
-        if (!pinned.isPinnedCopy()) return;
-        supportRepo.delete(pinned);
+        JSupport pinned = supportRepo.findById(pinnedId)
+                .orElseThrow(() -> new NoSuchElementException("Pinned support not found: " + pinnedId));
+
+        // 원본글의 핀 해제 시 복제본도 함께 삭제
+        if (!pinned.isPinnedCopy()) {
+            List<JSupport> copies = supportRepo.findAll()
+                    .stream()
+                    .filter(s -> s.getOriginalId() != null && s.getOriginalId().equals(pinned.getSupportId()))
+                    .toList();
+            copies.forEach(supportRepo::delete);
+            return;
+        }
+        // 복제본의 핀 해제 시 복제본만 삭제
+        if (pinned.isPinnedCopy()) {
+            supportRepo.delete(pinned);
+        }
+    }
+
+    // 상단 고정글 리스트
+    @Override
+    @Transactional(readOnly = true)
+    public List<JSupportDTO> getPinnedList(String type) {
+        List<JSupport> pinned = supportRepo.findTop5ByTypeAndPinnedCopyIsTrueOrderByCreatedAtAsc(type);
+        return pinned.stream().map(this::toDTO).toList();
     }
 
     // 좋아요 기능 (userId 기반)

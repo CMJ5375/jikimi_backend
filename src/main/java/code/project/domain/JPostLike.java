@@ -11,7 +11,7 @@ public class JPostLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postLikeCount;
+    private Long postLikeNumber;
 
     // 어떤 글에 대한 좋아요인가
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

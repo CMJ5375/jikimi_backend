@@ -24,7 +24,7 @@ public class QJPostLike extends EntityPathBase<JPostLike> {
 
     public final QJPost post;
 
-    public final NumberPath<Long> postLikeCount = createNumber("postLikeCount", Long.class);
+    public final NumberPath<Long> postLikeNumber = createNumber("postLikeNumber", Long.class);
 
     public final QJUser user;
 

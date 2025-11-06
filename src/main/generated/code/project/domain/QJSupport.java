@@ -34,6 +34,8 @@ public class QJSupport extends EntityPathBase<JSupport> {
 
     public final NumberPath<Integer> likeCount = createNumber("likeCount", Integer.class);
 
+    public final ListPath<JSupportLike, QJSupportLike> likes = this.<JSupportLike, QJSupportLike>createList("likes", JSupportLike.class, QJSupportLike.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> originalId = createNumber("originalId", Long.class);
 
     public final BooleanPath pinnedCopy = createBoolean("pinnedCopy");

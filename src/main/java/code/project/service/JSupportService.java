@@ -3,6 +3,8 @@ package code.project.service;
 import code.project.dto.JSupportDTO;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface JSupportService {
 
     // type에 따라 NOTICE / FAQ / DATAROOM 구분
@@ -13,6 +15,7 @@ public interface JSupportService {
     void delete(Long id, Long adminId);
     void pin(Long id, Long adminId);
     void unpin(Long pinnedId, Long adminId);
+    List<JSupportDTO> getPinnedList(String type);
 
     // 좋아요 관련 메서드 (userId 기반)
     LikeResult toggleSupportLike(Long supportId, Long userId);

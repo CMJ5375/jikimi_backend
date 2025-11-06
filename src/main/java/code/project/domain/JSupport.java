@@ -3,6 +3,8 @@ package code.project.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "support")
@@ -61,6 +63,9 @@ public class JSupport {
     // 좋아요
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     private Integer likeCount;
+
+    @OneToMany(mappedBy = "support", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<JSupportLike> likes = new ArrayList<>();
 
     @PrePersist
     void onCreate() {

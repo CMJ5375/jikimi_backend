@@ -24,7 +24,7 @@ public class QJSupportLike extends EntityPathBase<JSupportLike> {
 
     public final QJSupport support;
 
-    public final NumberPath<Long> supportLikeCount = createNumber("supportLikeCount", Long.class);
+    public final NumberPath<Long> supportLikeNumber = createNumber("supportLikeNumber", Long.class);
 
     public final QJUser user;
 

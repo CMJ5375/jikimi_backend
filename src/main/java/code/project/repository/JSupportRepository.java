@@ -34,4 +34,8 @@ public interface JSupportRepository extends JpaRepository<JSupport, Long> {
     List<JSupport> findTop5ByTypeAndPinnedCopyIsTrueOrderByCreatedAtAsc(String type);
 
     long countByTypeAndPinnedCopyTrue(String type);
+
+    boolean existsByOriginalId(Long originalId);
+
+    List<JSupport> findAllByOriginalId(Long originalId);
 }
