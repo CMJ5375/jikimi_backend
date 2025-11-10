@@ -13,7 +13,6 @@ public class CustomServletConfig implements WebMvcConfigurer {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
-        log.info("addFormatters 작동하니?");
         registry.addFormatter(new LocalDateFormatter());
     }
 

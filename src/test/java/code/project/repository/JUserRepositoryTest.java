@@ -108,10 +108,10 @@ class JUserRepositoryTest {
     void 페르소나이다은() {
         // given
         JUser user = JUser.builder()
-                .username("e")
+                .username("lee")
                 .password(passwordEncoder.encode("1234"))
                 .name("이다은")
-                .email("e@example.com")
+                .email("lee@example.com")
                 .socialType("LOCAL")
                 .build();
 
@@ -120,7 +120,7 @@ class JUserRepositoryTest {
         JUser saved = jUserRepository.save(user);
 
         assertThat(saved.getUserId()).isNotNull();
-        assertThat(jUserRepository.existsByUsername("e")).isTrue();
+        assertThat(jUserRepository.existsByUsername("lee")).isTrue();
     }
 
     @Test
@@ -160,7 +160,7 @@ class JUserRepositoryTest {
     @Test
     @DisplayName("회원 삭제 테스트")
     void deleteUser() {
-        String username = "test4";
+        String username = "lee";
         JUser user = jUserRepository.getwithRoles(username);
 
         if (user == null) {
