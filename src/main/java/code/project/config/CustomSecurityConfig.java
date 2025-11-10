@@ -52,14 +52,18 @@ public class CustomSecurityConfig {
                 .requestMatchers("/project/nmc/**").permitAll()
                 .requestMatchers("/", "/error", "/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
 
-                // 로그인 관련만 공개 (전체 /project/user/** permitAll 제거!)
+                // ===== Kakao OAuth 공개 =====
+                .requestMatchers(HttpMethod.GET,  "/project/user/kakao").permitAll()
+                .requestMatchers(HttpMethod.POST, "/project/user/kakao/token").permitAll()
+
+                // 로그인 관련만 공개 (전체 /project/user/** permitAll 제거 상태 유지)
                 .requestMatchers("/project/user/login", "/project/user/logout", "/project/user/refresh").permitAll()
                 // me는 인증 필요
                 .requestMatchers("/project/user/me").authenticated()
 
                 // 공개 조회 성격
                 .requestMatchers("/project/hospital/**", "/project/pharmacy/**", "/project/facility/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/project/facility/*/open").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/project/facility/*/open").permitAll()
                 .requestMatchers(HttpMethod.POST, "/project/facility/open-batch").permitAll()
                 .requestMatchers("/project/realtime/**").permitAll()
                 .requestMatchers("/files/**", "/uploads/**", "/default-profile.png").permitAll()
@@ -92,10 +96,11 @@ public class CustomSecurityConfig {
                 .anyRequest().authenticated()
         );
 
-
+        // formLogin/httpBasic 비활성 (네 설정 유지)
         http.formLogin(form -> form.disable());
         http.httpBasic(basic -> basic.disable());
 
+        // JWT 필터
         http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
