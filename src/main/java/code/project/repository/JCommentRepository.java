@@ -5,7 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,4 +37,8 @@ public interface JCommentRepository extends JpaRepository<JComment, Long> {
 
     // 소유자 확인용
     boolean existsByCommentIdAndUser_Username(Long commentId, String username);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from JComment c where c.post.postId = :postId")
+    void deleteByPostId(@Param("postId") Long postId);
 }

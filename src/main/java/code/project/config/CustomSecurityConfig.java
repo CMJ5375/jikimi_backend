@@ -1,8 +1,6 @@
 package code.project.config;
 
 import code.project.security.filter.JWTCheckFilter;
-import code.project.security.handler.APILoginFailHandler;
-import code.project.security.handler.APILoginSuccessHandler;
 import code.project.security.handler.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +8,6 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,8 +18,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-
 @Configuration
 @Slf4j
 @RequiredArgsConstructor
@@ -31,89 +26,104 @@ public class CustomSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("..........security config (no formLogin / no httpBasic)");
 
-        http.csrf(csrf -> csrf.disable()); //테스트용
-        log.info("..........security config");
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http.csrf(csrf -> csrf.disable());
 
-        //CORS 정책사용
-        http.cors(httpSecurityCorsConfigurer -> {
-            httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
-        });
-
-        //CSRF 사용하지 않음
-        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
+        http.exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, e) -> res.sendError(401))
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
+        );
 
         http.authorizeHttpRequests(auth -> auth
+                // 정적 리소스
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .requestMatchers("/api/account/**").permitAll()
-                .requestMatchers("/api/password/**").permitAll()
-                .requestMatchers("/project/register").permitAll()
+
+                // 헬스/루트
+                .requestMatchers(HttpMethod.GET, "/").permitAll()
+                .requestMatchers("/__health", "/project/health", "/actuator/health", "/actuator/health/**").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
+
+                // 공개 엔드포인트
+                .requestMatchers(HttpMethod.POST, "/project/register").permitAll()
+                .requestMatchers("/api/account/**", "/api/password/**").permitAll()
                 .requestMatchers("/project/open-hours/**", "/project/facility/*/business-hours").permitAll()
                 .requestMatchers("/project/nmc/**").permitAll()
                 .requestMatchers("/", "/error", "/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/project/user/**", "/project/hospital/**", "/project/pharmacy/**", "/project/facility/**", "/error").permitAll()
-                .requestMatchers(HttpMethod.GET,  "/project/facility/*/open").permitAll()
+
+                // 로그인 관련만 공개 (전체 /project/user/** permitAll 제거!)
+                .requestMatchers("/project/user/login", "/project/user/logout", "/project/user/refresh").permitAll()
+                // me는 인증 필요
+                .requestMatchers("/project/user/me").authenticated()
+
+                // 공개 조회 성격
+                .requestMatchers("/project/hospital/**", "/project/pharmacy/**", "/project/facility/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/project/facility/*/open").permitAll()
                 .requestMatchers(HttpMethod.POST, "/project/facility/open-batch").permitAll()
                 .requestMatchers("/project/realtime/**").permitAll()
-                .requestMatchers("/files/**").permitAll()
-                .requestMatchers(HttpMethod.GET,"/project/support/download").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
-                .requestMatchers("/default-profile.png").permitAll()
+                .requestMatchers("/files/**", "/uploads/**", "/default-profile.png").permitAll()
                 .requestMatchers("/project/map/**").permitAll()
+
+                // 지원/FAQ/자료실
                 .requestMatchers(HttpMethod.GET, "/project/support/**").permitAll()
-                // 로그인 사용자만 좋아요 가능하도록 별도 예외 허용
-                .requestMatchers(HttpMethod.POST, "/project/support/*/like/*").authenticated()
-                // 그 외 support 관련 POST/PUT/DELETE는 ADMIN만
-//                .requestMatchers(HttpMethod.POST, "/project/support/**")
-//                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/project/support/**")
-                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/project/support/**")
-                .hasAnyAuthority("ROLE_ADMIN","ADMIN")
+                .requestMatchers(HttpMethod.POST,   "/project/support/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,    "/project/support/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH,  "/project/support/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/project/support/**").hasRole("ADMIN")
+
+                // Preflight
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // 게시판
+                .requestMatchers(HttpMethod.GET,
+                        "/api/posts/list",
+                        "/api/posts/hot/pins",
+                        "/api/posts/*/likes/status",
+                        "/api/posts/**"
+                ).permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/posts/*/views").permitAll()
+                .requestMatchers(HttpMethod.POST,   "/api/posts/add").authenticated()
+                .requestMatchers(HttpMethod.PUT,    "/api/posts/*").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/posts/*").authenticated()
+                .requestMatchers(HttpMethod.PATCH,  "/api/posts/*/likes").authenticated()
+
+                // 기타
                 .anyRequest().authenticated()
         );
 
-        http.formLogin(config -> {
-            config.loginPage("/project/user/login");
-            config.successHandler(new APILoginSuccessHandler());
-            config.failureHandler(new APILoginFailHandler());
-        });
 
-        //JWT 필터는 인증이 필요한 요청만 검사하도록 유지
+        http.formLogin(form -> form.disable());
+        http.httpBasic(basic -> basic.disable());
+
         http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        //유효시간이 지나지 않았지만 권한이 없는 사용자가 가진 토큰을 사용하는 경우
-        http.exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler()));
-
-        http.httpBasic(Customizer.withDefaults());
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(); // 기본 strength=10
     }
 
-
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
-        //CorsConfiguration 객체를 생성합니다. 이 객체는 CORS 정책을 정의
-        CorsConfiguration configuration = new CorsConfiguration();
-        //모든 Origin을 허용
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        //허용할 HTTP 메서드를 설정
-        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        //허용할 HTTP 요청 헤더를 설정
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        //클라이언트가 **자격 증명(쿠키, 인증 정보 등)**을 포함한 요청을 보낼 수 있도록 허용
-        //true로 설정되면, 서버는 자격 증명 있는 요청을 신뢰
-        configuration.setAllowCredentials(true);
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(java.util.List.of(
+                "http://localhost:3000",
+                "https://localhost:3000",
+                "https://jikimi.duckdns.org",
+                "http://apiserver-env.eba-wqmpyrjp.ap-northeast-2.elasticbeanstalk.com",
+                "https://apiserver-env.eba-wqmpyrjp.ap-northeast-2.elasticbeanstalk.com",
+                "https://d3s30j0qk5vpe1.cloudfront.net"
+        ));
+        cfg.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
+        cfg.setAllowCredentials(true);
+        cfg.setExposedHeaders(java.util.List.of("Authorization", "Content-Type"));
 
-        //URL 패턴에 따라 CorsConfiguration을 매핑할 수 있는 객체를 생성
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-
-        //"/**"로 지정하여 모든 URL 경로에 대해 이 CORS 정책을 적용
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", cfg);
+        return src;
     }
 }

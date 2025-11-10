@@ -19,4 +19,7 @@ public interface JUserRepository extends JpaRepository<JUser, Long> {
     Optional<JUser> getCodeUserByUsername(String username);
 
     Optional<JUser> findByUsername(String username);
+
+    @Query("select u.userId from JUser u where u.username = :username")
+    Optional<Long> findIdByUsername(@Param("username") String username);
 }

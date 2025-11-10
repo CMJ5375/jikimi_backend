@@ -2,7 +2,7 @@ package code.project.repository;
 
 import code.project.domain.JMemberRole;
 import code.project.domain.JUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Slf4j
+
 @SpringBootTest
 class JUserRepositoryTest {
 
@@ -41,34 +41,6 @@ class JUserRepositoryTest {
         assertThat(jUserRepository.existsByUsername("tester")).isTrue();
 
 //        log.info("저장된 사용자: {}", saved);
-    }
-
-    @Test
-    @DisplayName("일반 사용자 50명 생성")
-    void createDummyUsers() {
-        for (int i = 1; i <= 50; i++) {
-            String username = "test" + i;
-            String name = "테스트유저" + i;
-            String email = "test" + i + "@aaa.com";
-
-            // 중복 방지: 이미 존재하면 건너뛰기
-            if (jUserRepository.existsByUsername(username)) {
-                log.info("'{}' 이미 존재", username);
-                continue;
-            }
-            JUser user = JUser.builder()
-                    .username(username)
-                    .password(passwordEncoder.encode("1234"))
-                    .name(name)
-                    .email(email)
-                    .socialType("LOCAL")
-                    .build();
-            user.addRole(JMemberRole.USER);
-            jUserRepository.save(user);
-            assertThat(user.getUserId()).isNotNull();
-            assertThat(jUserRepository.existsByUsername(username)).isTrue();
-        }
-        log.info("일반 사용자 50명 생성 완료");
     }
 
     @Test
@@ -155,10 +127,10 @@ class JUserRepositoryTest {
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
-                .username("adminer")
+                .username("admin")
                 .password(passwordEncoder.encode("1234"))
-                .name("관리자")
-                .email("adminer@aaa.com")
+                .name("지킴이")
+                .email("adminer@bbb.com")
                 .socialType("LOCAL")
                 .build();
 
@@ -167,7 +139,7 @@ class JUserRepositoryTest {
         jUserRepository.save(admin);
 
         // then
-        assertThat(jUserRepository.existsByUsername("adminer")).isTrue();
+        assertThat(jUserRepository.existsByUsername("admin")).isTrue();
     }
 
     @Test

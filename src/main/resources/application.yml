@@ -1,9 +1,11 @@
 spring:
+  application:
+    name: api
   datasource:
+    url: jdbc:mysql://awseb-e-uqimne4s4m-stack-awsebrdsdatabase-ks8f5jijkemu.cb2q8cq42e2k.ap-northeast-2.rds.amazonaws.com:3306/testdb
+    username: ebroot
+    password: 12345678
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/Jikimi_open?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: 1234
   servlet:
     multipart:
       max-file-size: 10MB
@@ -15,6 +17,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
+        globally_quoted_identifiers: true
         format_sql: true
   mail:
     host: smtp.gmail.com
@@ -27,6 +30,24 @@ spring:
           auth: true
           starttls:
             enable: true
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+      s3:
+        bucket: elasticbeanstalk-ap-northeast-2-620812304102
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
+server:
+  port: 5000
+  error:
+    include-message: always          # 기본 에러 바디에 message 포함
+    include-binding-errors: always
+    include-stacktrace: never
+server.forward-headers-strategy: framework
 
 file:
   upload:
@@ -35,22 +56,18 @@ file:
     # 정적 노출 URL prefix (WebConfig에서 사용)
     public-url-prefix: "/files/"
 
-org:
-  springframework:
-    security:
-      web: trace
 
 logging:
   level:
     root: INFO
-
-    # Hibernate
+    org.hibernate.type.descriptor.sql: TRACE
+    # Hibernate (DEBUG로 변경하여 바인딩 값 확인 준비)
     org.hibernate.SQL: WARN
-    org.hibernate.orm.jdbc.bind: OFF   # 바인딩 값 로그 끔(가장 시끄러움)
+    org.hibernate.orm.jdbc.bind: DEBUG   # 바인딩 값 로그 ON
 
-    # Spring Security & Web
-    org.springframework.security: INFO
-    org.springframework.security.web: INFO
+    # Spring Security & Web (DEBUG로 변경하여 상세 흐름 확인)
+    org.springframework.security: DEBUG  # Security 상세 로그 ON
+    org.springframework.security.web: DEBUG
     org.springframework.web: INFO
     org.springframework.web.servlet.DispatcherServlet: INFO
 
@@ -60,8 +77,8 @@ logging:
     org.springframework.web.HttpLogging: WARN
     reactor.netty: WARN
 
-    # 당신의 앱 패키지
-    code.project: INFO
+    # 당신의 앱 패키지 (DEBUG로 변경하여 서비스/컨트롤러 로직 확인)
+    code.project: DEBUG # 앱 내부 패키지 상세 로그 ON
 #logging.level: org.hibernate.SQL: debug org.hibernate.orm.jdbc.bind: trace org.springframework.security.web: trace org.springframework.web: debug org.springframework.http.converter: trace 지금은 디버그 쪽 없애서 만약 콘솔로그 좀 자세히 보고싶으면 여기 주석해제해서 위에꺼랑 바꿔치기 하면됩니다.
 
 kakao:

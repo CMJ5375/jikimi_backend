@@ -18,7 +18,6 @@ public class MailService {
     private static final String FROM_EMAIL = "dodojun0913@gmail.com";
     private static final String FROM_NAME  = "열려있나요?프로젝트 메일";
 
-    /** 제목을 '인증번호 123456' 형태로 전송 */
     public void sendCode(String to, String code) {
         try {
             MimeMessage mime = mailSender.createMimeMessage();
@@ -28,10 +27,8 @@ public class MailService {
             helper.setFrom(new InternetAddress(FROM_EMAIL, FROM_NAME, "UTF-8"));
             helper.setTo(to);
 
-            // 🔵 제목에 인증번호 직접 표기
+            //  제목에 인증번호 직접 표기
             helper.setSubject("인증번호 " + code);   // 예: "인증번호 123456"
-            // 만약 숫자만 제목으로 원하면: helper.setSubject(code);
-
             // 본문(텍스트)
             String body = "요청하신 인증번호는 아래와 같습니다.\n\n"
                     + code + "\n\n"

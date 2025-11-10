@@ -21,7 +21,7 @@ public interface JSupportService {
     LikeResult toggleSupportLike(Long supportId, Long userId);
     boolean isSupportLikedByUser(Long supportId, Long userId);
     int getSupportLikeCount(Long supportId);
-
+    Long resolveAdminIdByUsername(String username);
     // 좋아요 결과 DTO
     class LikeResult {
         private final int supportLikeCount;
