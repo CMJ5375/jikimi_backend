@@ -24,7 +24,12 @@ class JSupportServiceImpl implements JSupportService {
     private final JSupportRepository supportRepo;
     private final JUserRepository userRepo;
     private final JSupportLikeRepository supportLikeRepository;
-
+    private final JUserRepository userRepository;
+    @Override
+    public Long resolveAdminIdByUsername(String username) {
+        return userRepository.findIdByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("관리자 ID를 찾을 수 없습니다."));
+    }
     private JSupportDTO toDTO(JSupport e) {
         return JSupportDTO.builder()
                 .supportId(e.getSupportId())
@@ -258,4 +263,5 @@ class JSupportServiceImpl implements JSupportService {
         long cnt = supportLikeRepository.countBySupport_SupportId(supportId);
         return (int) cnt;
     }
+
 }

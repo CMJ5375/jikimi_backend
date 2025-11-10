@@ -16,6 +16,9 @@ public interface JUserService {
     //회원가입 로직
     String register(JUserDTO jUserDTO);
 
+    JUserDTO login(String username, String rawPassword);
+
+    JUserDTO authenticate(String username, String rawPassword);
     void modifyUser(JUserModifyDTO jUserModifyDTO);
 
     default JUserDTO entityToDTO(JUser JUser) {
@@ -36,4 +39,6 @@ public interface JUserService {
 
     //프로필 사진
     JUserDTO updateProfile(String username, String name, String address, Integer age, MultipartFile image);
+
+
 }

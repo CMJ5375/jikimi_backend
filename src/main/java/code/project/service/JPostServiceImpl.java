@@ -18,7 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,6 +41,8 @@ public class JPostServiceImpl implements JPostService {
     private final HotPinManager hotPinManager;
     // 좋아요 3개 이상이면 인기글로
     private static final int HOT_THRESHOLD = 3;
+    @PersistenceContext
+    private EntityManager em;
 
     // 조회
     @Override
@@ -118,21 +121,34 @@ public class JPostServiceImpl implements JPostService {
         JPost post = jPostRepository.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found: " + postId));
 
-        String ownerUsername = post.getUser().getUsername();
+        String ownerUsername = post.getUser() != null ? post.getUser().getUsername() : null;
 
-        // 삭제는 두 경우 허용:
-        // 1) 내가 쓴 글이면 삭제 가능
-        // 2) 관리자는 누구 글이든 삭제 가능
-//        if (!(ownerUsername.equals(loginUsername) || isAdmin)) {
-//            throw new SecurityException("삭제 권한이 없습니다.");
-//        }
+        // 권한 체크: 작성자 또는 관리자
+        if (!(isAdmin || (ownerUsername != null && ownerUsername.equals(loginUsername)))) {
+            throw new SecurityException("삭제 권한이 없습니다.");
+        }
 
-        // 하드 삭제
+        // 1) 연관 데이터부터 벌크 삭제 (FK 제약 위반 방지)
+        //    - 리포지토리 변경 없이 JPQL 벌크 delete 사용
+        em.createQuery("delete from JComment c where c.post.postId = :pid")
+                .setParameter("pid", postId)
+                .executeUpdate();
+
+        em.createQuery("delete from JPostLike l where l.post.postId = :pid")
+                .setParameter("pid", postId)
+                .executeUpdate();
+
+        // 2) 인기글 핀에서 제거 (있을 수 있으니 시도)
+        try {
+            hotPinManager.removePin(postId);
+        } catch (Exception ignore) {}
+
+        // 3) 본문 삭제 (하드 삭제)
         jPostRepository.delete(post);
 
-        // 만약 소프트 삭제 쓰고 싶으면 위 줄 대신:
+        // ── 만약 소프트 삭제를 원하면 위 한 줄 대신 다음 두 줄:
         // post.setIsDeleted(true);
-        // JPostRepository.save(post);
+        // jPostRepository.save(post);
     }
 
     //조회

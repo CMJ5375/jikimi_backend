@@ -4,7 +4,7 @@ import code.project.domain.BoardCategory;
 import code.project.domain.JUser;
 import code.project.dto.JPostDTO;
 import code.project.repository.JUserRepository;
-import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDateTime;
 
 @SpringBootTest
-@Slf4j
+
 class JPostServiceTest {
 
     @Autowired

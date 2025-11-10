@@ -2,7 +2,7 @@ package code.project.repository;
 
 import code.project.domain.JMemberRole;
 import code.project.domain.JUser;
-import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Slf4j
+
 @SpringBootTest
 class JUserRepositoryTest {
 
@@ -127,10 +127,10 @@ class JUserRepositoryTest {
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
-                .username("adminer")
+                .username("admin")
                 .password(passwordEncoder.encode("1234"))
-                .name("관리자")
-                .email("adminer@aaa.com")
+                .name("지킴이")
+                .email("adminer@bbb.com")
                 .socialType("LOCAL")
                 .build();
 
@@ -139,7 +139,7 @@ class JUserRepositoryTest {
         jUserRepository.save(admin);
 
         // then
-        assertThat(jUserRepository.existsByUsername("adminer")).isTrue();
+        assertThat(jUserRepository.existsByUsername("admin")).isTrue();
     }
 
     @Test

@@ -6,6 +6,7 @@ import code.project.dto.JUserModifyDTO;
 import code.project.dto.KakaoUserInfoDTO;
 import code.project.dto.JUserDTO;
 import code.project.repository.JUserRepository;
+import code.project.util.CustomS3Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -14,16 +15,23 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -34,7 +42,7 @@ public class JUserServiceImpl implements JUserService {
     private final JUserRepository jUserRepository;
 
     private final PasswordEncoder passwordEncoder;
-
+    private final CustomS3Util s3Util;
 
     @Override
     public JUserDTO getKakaoUser(String accessToken) {
@@ -53,6 +61,24 @@ public class JUserServiceImpl implements JUserService {
         JUserDTO JUserDTO = entityToDTO(socialJUser);
         return JUserDTO;
     }
+    @Override
+    public JUserDTO login(String username, String rawPassword) {
+        var user = jUserRepository.getCodeUserByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("user_not_found"));
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new IllegalArgumentException("bad_credentials");
+        }
+        return entityToDTO(user);
+    }
+
+    @Override
+    public JUserDTO authenticate(String username, String rawPassword) {
+        return jUserRepository.getCodeUserByUsername(username)
+                .filter(u -> passwordEncoder.matches(rawPassword, u.getPassword()))
+                .map(this::entityToDTO)
+                .orElse(null);
+    }
+
 
     private KakaoUserInfoDTO getNicknameFromAccessToken(String accessToken) {
         String kakaoGetUserURL = "https://kapi.kakao.com/v2/user/me";
@@ -124,26 +150,42 @@ public class JUserServiceImpl implements JUserService {
     }
 
 //    회원가입 로직
-    @Override
-    public String register(JUserDTO jUserDTO) {
-        // 사용자명 중복 검사
-        if(jUserRepository.existsByUsername(jUserDTO.getUsername())) {
-            return "이미 존재하는 회원입니다.";
-        }
-
-        JUser jUser = JUser.builder()
-                .username(jUserDTO.getUsername())
-                .email(jUserDTO.getEmail())
-                .name(jUserDTO.getName())
-                .password(passwordEncoder.encode(jUserDTO.getPassword()))
-                .socialType("LOCAL")
-                .build();
-        jUser.addRole(JMemberRole.USER);
-
-        jUserRepository.save(jUser);
-
-        return "회원가입 성공";
+@Transactional
+public String register(JUserDTO dto) {
+    // 중복 가드
+    if (jUserRepository.existsByUsername(dto.getUsername())) {
+        return "이미 존재하는 아이디입니다.";
     }
+
+    // 비밀번호 인코딩
+    String enc = passwordEncoder.encode(dto.getPassword());
+
+    // 권한 보정
+    List<String> roles = dto.getRoleNames();
+    if (roles == null || roles.isEmpty()) {
+        roles = new ArrayList<>();
+        roles.add("USER");
+    }
+
+    // 엔티티 생성 (name/email NOT NULL 보정은 컨트롤러에서 이미 했지만, 한 번 더 안전망)
+    JUser entity = JUser.builder()
+            .username(dto.getUsername())
+            .password(enc)
+            .name( (dto.getName()==null || dto.getName().isBlank()) ? "사용자" : dto.getName() )
+            .email((dto.getEmail()==null || dto.getEmail().isBlank()) ? (dto.getUsername()+"@local.local") : dto.getEmail())
+            .address(null)
+            .age(null)
+            .socialType("LOCAL")
+            .build();
+
+    // 권한 매핑
+    for (String r : roles) {
+        entity.addRole(code.project.domain.JMemberRole.valueOf(r));
+    }
+
+    jUserRepository.save(entity);
+    return "회원가입 성공";
+}
 
 //    회원 정보 수정 로직
     @Override
@@ -188,29 +230,87 @@ public class JUserServiceImpl implements JUserService {
         JUser user = jUserRepository.getCodeUserByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
-        String imageUrl = null;
+        String oldUrl = user.getProfileImage(); // 기존 이미지 URL (있으면 삭제 대상)
+        String newUrl = null;
 
         try {
             if (image != null && !image.isEmpty()) {
-                Path base = Paths.get(System.getProperty("user.home"), "app-uploads", "profiles", String.valueOf(user.getUserId()));
-                Files.createDirectories(base);
+                // 파일명/키 구성
+                String original = image.getOriginalFilename();
+                if (original == null || original.isBlank()) {
+                    original = "profile.png";
+                }
+                // 파일명에 포함될 수 있는 경로 구분자 방어
+                String safeName = original.replace("\\", "/");
+                int slash = safeName.lastIndexOf('/');
+                if (slash >= 0) safeName = safeName.substring(slash + 1);
 
-                String filename = "profile_" + System.currentTimeMillis() + "_" + image.getOriginalFilename();
-                Path target = base.resolve(filename);
-                Files.write(target, image.getBytes());
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                String key = "profiles/" + user.getUserId() + "/profile_" + timestamp + "_" + safeName;
 
-                imageUrl = "/uploads/profiles/" + user.getUserId() + "/" + filename;
+                // S3 업로드 (컨텐츠 타입 그대로 넘김)
+                String contentType = image.getContentType();
+                byte[] bytes = image.getBytes(); // 메모리에 적당한 크기면 OK
+
+                s3Util.uploadBytes(bytes, key, contentType);
+
+                // 공개 URL
+                newUrl = s3Util.objectUrl(key);
+
+                // 기존 S3 이미지 삭제 (동일 버킷 URL인 경우만)
+                if (oldUrl != null && isS3UrlOfOurBucket(oldUrl)) {
+                    String oldKey = extractS3KeyFromUrl(oldUrl);
+                    if (oldKey != null && !oldKey.isBlank()) {
+                        try {
+                            s3Util.deleteByKey(oldKey);
+                        } catch (Exception ex) {
+                            log.warn("프로필 기존 S3 객체 삭제 실패 oldKey={}", oldKey, ex);
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException("프로필 이미지 업로드 실패", e);
         }
 
-        // null(미전달)은 기존 값 유지
-        user.updateProfile(name, address, age, imageUrl);
+        // 전달되지 않은 필드는 유지
+        user.updateProfile(
+                (name    != null ? name    : user.getName()),
+                (address != null ? address : user.getAddress()),
+                (age     != null ? age     : user.getAge()),
+                (newUrl  != null ? newUrl  : user.getProfileImage())
+        );
+
         jUserRepository.save(user);
 
         JUserDTO dto = entityToDTO(user);
         dto.setProfileImage(user.getProfileImage());
         return dto;
+    }
+
+    /** 우리 버킷의 S3 정적 URL인지 대략 검사 (예: https://<bucket>.s3.<region>.amazonaws.com/<key>) */
+    private boolean isS3UrlOfOurBucket(String url) {
+        try {
+            URI u = URI.create(url);
+            String host = u.getHost(); // e.g. elasticbeanstalk-...s3.ap-northeast-2.amazonaws.com
+            return host != null && host.contains(".s3.") && host.endsWith(".amazonaws.com");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** 정적 URL에서 key 추출 */
+    private String extractS3KeyFromUrl(String url) {
+        try {
+            URI u = URI.create(url);
+            String path = u.getPath(); // "/profiles/123/xxx.png"
+            if (path == null || path.isBlank()) return null;
+            // 맨 앞 슬래시 제거
+            if (path.startsWith("/")) path = path.substring(1);
+            // URL decoding (안전)
+            return java.net.URLDecoder.decode(path, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
