@@ -155,10 +155,10 @@ class JUserRepositoryTest {
     @DisplayName("관리자 등급 사용자 가입 테스트")
     void createAdminUser() {
         JUser admin = JUser.builder()
-                .username("admin")
+                .username("adminer")
                 .password(passwordEncoder.encode("1234"))
-                .name("지킴이")
-                .email("adminer@bbb.com")
+                .name("관리자")
+                .email("admin@aaa.com")
                 .socialType("LOCAL")
                 .build();
 
