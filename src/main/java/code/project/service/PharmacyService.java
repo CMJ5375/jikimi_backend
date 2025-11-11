@@ -39,13 +39,13 @@ public class PharmacyService {
         if (distance != null && !distance.isBlank()) {
             String s = distance.trim().toLowerCase();
             try {
-                if (s.endsWith("km")) {                      // ✅ km 먼저
+                if (s.endsWith("km")) {
                     String num = s.substring(0, s.length() - 2).trim();
-                    radiusKm = Double.parseDouble(num);      // km 그대로
-                } else if (s.endsWith("m")) {                // ✅ 그 다음 m
+                    radiusKm = Double.parseDouble(num);
+                } else if (s.endsWith("m")) {
                     String num = s.substring(0, s.length() - 1).trim();
-                    radiusKm = Double.parseDouble(num) / 1000.0; // m → km
-                } else {                                     // 숫자만 온 경우 m로 간주
+                    radiusKm = Double.parseDouble(num) / 1000.0;
+                } else {
                     radiusKm = Double.parseDouble(s) / 1000.0;
                 }
             } catch (NumberFormatException e) {

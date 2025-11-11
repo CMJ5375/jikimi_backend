@@ -44,6 +44,34 @@ class JUserRepositoryTest {
     }
 
     @Test
+    @DisplayName("일반 사용자 50명 생성")
+    void createDummyUsers() {
+        for (int i = 1; i <= 50; i++) {
+            String username = "test" + i;
+            String name = "테스트유저" + i;
+            String email = "test" + i + "@aaa.com";
+
+            // 중복 방지: 이미 존재하면 건너뛰기
+            if (jUserRepository.existsByUsername(username)) {
+                log.info("'{}' 이미 존재", username);
+                continue;
+            }
+            JUser user = JUser.builder()
+                    .username(username)
+                    .password(passwordEncoder.encode("1234"))
+                    .name(name)
+                    .email(email)
+                    .socialType("LOCAL")
+                    .build();
+            user.addRole(JMemberRole.USER);
+            jUserRepository.save(user);
+            assertThat(user.getUserId()).isNotNull();
+            assertThat(jUserRepository.existsByUsername(username)).isTrue();
+        }
+        log.info("일반 사용자 50명 생성 완료");
+    }
+
+    @Test
     @DisplayName("User 저장 및 조회 테스트")
     void 페르소나홍기열() {
         // given
@@ -108,10 +136,10 @@ class JUserRepositoryTest {
     void 페르소나이다은() {
         // given
         JUser user = JUser.builder()
-                .username("e")
+                .username("lee")
                 .password(passwordEncoder.encode("1234"))
                 .name("이다은")
-                .email("e@example.com")
+                .email("lee@example.com")
                 .socialType("LOCAL")
                 .build();
 
@@ -120,7 +148,7 @@ class JUserRepositoryTest {
         JUser saved = jUserRepository.save(user);
 
         assertThat(saved.getUserId()).isNotNull();
-        assertThat(jUserRepository.existsByUsername("e")).isTrue();
+        assertThat(jUserRepository.existsByUsername("lee")).isTrue();
     }
 
     @Test
@@ -160,7 +188,7 @@ class JUserRepositoryTest {
     @Test
     @DisplayName("회원 삭제 테스트")
     void deleteUser() {
-        String username = "test4";
+        String username = "lee";
         JUser user = jUserRepository.getwithRoles(username);
 
         if (user == null) {
