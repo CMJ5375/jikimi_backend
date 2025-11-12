@@ -52,16 +52,15 @@ public class CustomSecurityConfig {
                 .requestMatchers("/project/nmc/**").permitAll()
                 .requestMatchers("/", "/error", "/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
 
-                // ===== Kakao OAuth 공개 =====
+                // Kakao OAuth
                 .requestMatchers(HttpMethod.GET,  "/project/user/kakao").permitAll()
                 .requestMatchers(HttpMethod.POST, "/project/user/kakao/token").permitAll()
 
-                // 로그인 관련만 공개 (전체 /project/user/** permitAll 제거 상태 유지)
+                // 로그인 관련만 공개
                 .requestMatchers("/project/user/login", "/project/user/logout", "/project/user/refresh").permitAll()
-                // me는 인증 필요
                 .requestMatchers("/project/user/me").authenticated()
 
-                // 공개 조회 성격
+                // 공개 조회
                 .requestMatchers("/project/hospital/**", "/project/pharmacy/**", "/project/facility/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/project/facility/*/open").permitAll()
                 .requestMatchers(HttpMethod.POST, "/project/facility/open-batch").permitAll()
@@ -69,11 +68,15 @@ public class CustomSecurityConfig {
                 .requestMatchers("/files/**", "/uploads/**", "/default-profile.png").permitAll()
                 .requestMatchers("/project/map/**").permitAll()
 
-                // 지원/FAQ/자료실
-                .requestMatchers(HttpMethod.GET, "/project/support/**").permitAll()
+                // ===== 지원/FAQ/자료실 좋아요 예외를 먼저 선언 (순서 중요) =====
+                .requestMatchers(HttpMethod.GET,   "/project/support/**/likes/status").permitAll()     // ★ 상태조회 누구나
+                .requestMatchers(HttpMethod.PATCH, "/project/support/**/likes").authenticated()        // ★ 좋아요 토글은 '로그인'만
+
+                // 지원/FAQ/자료실 - 그 외 쓰기 권한은 ADMIN
+                .requestMatchers(HttpMethod.GET,    "/project/support/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/project/support/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/project/support/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PATCH,  "/project/support/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH,  "/project/support/**").hasRole("ADMIN")            // 위 likes 예외가 먼저 매칭됨
                 .requestMatchers(HttpMethod.DELETE, "/project/support/**").hasRole("ADMIN")
 
                 // Preflight
@@ -84,7 +87,7 @@ public class CustomSecurityConfig {
                         "/api/posts/list",
                         "/api/posts/hot/pins",
                         "/api/posts/*/likes/status",
-                        "/api/posts/**"
+                        "/api/posts/*/views"  // 조회수 증가 공개 유지 시
                 ).permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/api/posts/*/views").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/api/posts/add").authenticated()
@@ -96,11 +99,9 @@ public class CustomSecurityConfig {
                 .anyRequest().authenticated()
         );
 
-        // formLogin/httpBasic 비활성 (네 설정 유지)
         http.formLogin(form -> form.disable());
         http.httpBasic(basic -> basic.disable());
 
-        // JWT 필터
         http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

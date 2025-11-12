@@ -1,6 +1,7 @@
 // src/main/java/code/project/controller/JPostController.java
 package code.project.controller;
 
+import code.project.domain.BoardCategory;
 import code.project.domain.JPost;
 import code.project.domain.JUser;
 import code.project.dto.PageRequestDTO;
@@ -21,9 +22,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +40,8 @@ public class JPostController {
     /** 상단 고정 인기글 */
     @GetMapping("/hot/pins")
     public ResponseEntity<List<JPostDTO>> getHotPins() {
+        // 리포지토리에 "좋아요 3개 이상" 상위 3개 메서드가 있는 전제
+        // findTop3ByLikeCountGreaterThanEqualAndIsDeletedFalseOrderByLikeCountDescPostIdDesc(3)
         List<JPostDTO> pins = jPostService.getHotPins();
         return ResponseEntity.ok(pins);
     }
@@ -51,11 +53,33 @@ public class JPostController {
             @RequestParam(required = false, defaultValue = "DEFAULT") String sort,
             @RequestParam(required = false, defaultValue = "7") Integer days
     ) {
-        String cat = (req.getBoardCategory() != null && !req.getBoardCategory().isBlank())
-                ? req.getBoardCategory() : null;
-        req.setBoardCategory(cat);
-        req.setSort(sort);
-        req.setDays(String.valueOf(days == null ? 7 : days));
+        // 🔒 파라미터 정규화: 빈 문자열 → null
+        String q = (req.getQ() != null && !req.getQ().isBlank()) ? req.getQ() : null;
+
+        String catRaw = req.getBoardCategory();
+        BoardCategory category = null;
+        if (catRaw != null && !catRaw.isBlank()) {
+            try {
+                category = BoardCategory.valueOf(catRaw);
+            } catch (IllegalArgumentException ignore) {
+                // 잘못된 카테고리 값은 무시(전체 검색)
+                category = null;
+            }
+        }
+
+        String sortNorm = (sort == null) ? "DEFAULT" : sort.trim().toUpperCase(Locale.ROOT);
+        int page = Math.max(1, req.getPage());
+        int size = Math.max(1, req.getSize());
+        int daysVal = (days == null ? 7 : Math.max(1, days));
+
+        // PageRequestDTO에 정규화 값 되돌려 세팅(서비스에서 그대로 사용)
+        req.setQ(q);
+        req.setBoardCategory(category == null ? null : category.name());
+        req.setSort(sortNorm);
+        req.setDays(String.valueOf(daysVal));
+        req.setPage(page);
+        req.setSize(size);
+
         return jPostService.getList(req);
     }
 
@@ -80,7 +104,18 @@ public class JPostController {
         JUser user = jUserRepository.findByUsername(dto.getAuthorUsername())
                 .orElseThrow(() -> new NoSuchElementException("User not found: " + dto.getAuthorUsername()));
 
-        // 2) 선저장으로 postId 확보
+        // 2) 필수 값 가드
+        if (dto.getBoardCategory() == null) {
+            throw new IllegalArgumentException("boardCategory is required");
+        }
+        if (dto.getTitle() == null || dto.getTitle().isBlank()) {
+            throw new IllegalArgumentException("title is required");
+        }
+        if (dto.getContent() == null || dto.getContent().isBlank()) {
+            throw new IllegalArgumentException("content is required");
+        }
+
+        // 3) 선저장으로 postId 확보
         JPost entity = JPost.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
@@ -96,20 +131,14 @@ public class JPostController {
         Long postId = saved.getPostId();
         log.info(">> saved postId = {}", postId);
 
-        // 3) 파일 있으면 S3 업로드 → 절대 URL을 fileUrl로 저장
+        // 4) 파일 있으면 S3 업로드 → 절대 URL을 fileUrl로 저장
         if (file != null && !file.isEmpty()) {
-            String rawName = file.getOriginalFilename();
-            if (rawName == null) rawName = "file";
-            // 브라우저가 경로 통째로 줄 수 있으니 마지막 조각만, 그리고 슬래시 방어
+            String rawName = Optional.ofNullable(file.getOriginalFilename()).orElse("file");
             String safeName = new java.io.File(rawName).getName().replace("/", "_");
-
-            // S3 key: posts/{postId}/{filename}
             String key = "posts/" + postId + "/" + safeName;
 
-            // 바로 바이트 업로드
             s3Util.uploadBytes(file.getBytes(), key, file.getContentType());
 
-            // 퍼블릭 URL 세팅
             String objectUrl = s3Util.objectUrl(key);
             saved.setFileUrl(objectUrl);
             jPostRepository.save(saved);
@@ -159,7 +188,7 @@ public class JPostController {
                 .anyMatch(role -> role.equals("ROLE_ADMIN"));
 
         try {
-            jPostService.removeWithAuth(postId, loginUsername, isAdmin); // 서비스에서 S3 정리까지 수행하도록 권장
+            jPostService.removeWithAuth(postId, loginUsername, isAdmin);
             return ResponseEntity.ok().build();
         } catch (SecurityException se) {
             return ResponseEntity.status(403).body(se.getMessage());

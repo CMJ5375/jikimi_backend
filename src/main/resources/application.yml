@@ -13,11 +13,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update  #create update
+      ddl-auto: update   #create update validate
     show-sql: false
     properties:
       hibernate:
-        globally_quoted_identifiers: true
         format_sql: true
   mail:
     host: smtp.gmail.com
@@ -32,9 +31,6 @@ spring:
             enable: true
   cloud:
     aws:
-      credentials:
-        access-key: ${AWS_ACCESS_KEY_ID}
-        secret-key: ${AWS_SECRET_ACCESS_KEY}
       s3:
         bucket: elasticbeanstalk-ap-northeast-2-620812304102
       region:

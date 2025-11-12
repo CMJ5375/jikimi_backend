@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "support")
+@Table(name = "j_support")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
@@ -16,6 +16,7 @@ public class JSupport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "support_id")
     private Long supportId;
 
     // 작성자 (ADMIN이어야 함 — 서비스 레이어에서 권한 체크)

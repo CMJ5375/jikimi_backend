@@ -4,14 +4,15 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "post_like")
+@Table(name = "j_post_like")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 public class JPostLike {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postLikeNumber;
+    @Column(name = "post_like_number")
+    private Long post_like_number;
 
     // 어떤 글에 대한 좋아요인가
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

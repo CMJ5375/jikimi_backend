@@ -18,11 +18,9 @@ import java.util.Optional;
 @Repository
 public interface JPostRepository extends JpaRepository<JPost, Long> {
 
-    // --- 기존 사용 메서드들 ---
+    // --- 기존 사용 메서드들 (변경 없음) ---
     List<JPost> findByUser_UserId(Long userId);
-
     Page<JPost> findByIsDeletedFalse(Pageable pageable);
-
     Page<JPost> findByBoardCategoryAndIsDeletedFalse(BoardCategory boardCategory, Pageable pageable);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -33,18 +31,20 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
     @Query("update JPost p set p.likeCount = p.likeCount + 1 where p.postId = :id")
     int incrementLike(@Param("id") Long id);
 
-    // 검색(대소문자 변환/LOWER 제거, content는 문자열로 캐스팅)
+    // ✅ CLOB 안전: cast(...) → concat('', p.content)
     @Query("""
            select p from JPost p
            where p.isDeleted = false
              and (
                   :q is null
                   or p.title like concat('%', :q, '%')
-                  or cast(p.content as string) like concat('%', :q, '%')
+                  or concat('', p.content) like concat('%', :q, '%')
                  )
+           order by p.postId desc
            """)
     Page<JPost> searchAll(@Param("q") String q, Pageable pageable);
 
+    // ✅ CLOB 안전 + 정렬 명시
     @Query("""
            select p from JPost p
            where p.isDeleted = false
@@ -52,8 +52,9 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
              and (
                   :q is null
                   or p.title like concat('%', :q, '%')
-                  or cast(p.content as string) like concat('%', :q, '%')
+                  or concat('', p.content) like concat('%', :q, '%')
                  )
+           order by p.postId desc
            """)
     Page<JPost> searchByBoard(@Param("boardCategory") BoardCategory boardCategory,
                               @Param("q") String q,
@@ -61,7 +62,7 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
 
     List<JPost> findByUser_UsernameAndIsDeletedFalseOrderByPostIdDesc(String username);
 
-    // 기본 목록(카테고리/검색 반영, 최신순) - LOWER 제거 + CLOB 캐스트
+    // ✅ 기본 목록(정렬 명시 + CLOB 안전)
     @Query("""
            select p from JPost p
            where p.isDeleted = false
@@ -69,37 +70,37 @@ public interface JPostRepository extends JpaRepository<JPost, Long> {
              and (
                   :q is null
                   or p.title like concat('%', :q, '%')
-                  or cast(p.content as string) like concat('%', :q, '%')
+                  or concat('', p.content) like concat('%', :q, '%')
                  )
+           order by p.postId desc
            """)
     Page<JPost> findDefault(@Param("category") BoardCategory category,
                             @Param("q") String q,
                             Pageable pageable);
 
-    // 인기글(최근 since 이후) - LOWER 제거 + CLOB 캐스트
+    // ✅ 인기글(정렬 명시 + CLOB 안전)
     @Query("""
-   select p from JPost p
-   where p.isDeleted = false
-     and (p.createdAt is null or p.createdAt >= :since)
-     and p.likeCount >= 3
-     and (:category is null or p.boardCategory = :category)
-     and (
-           :q is null
-           or p.title like concat('%', :q, '%')
-           or cast(p.content as string) like concat('%', :q, '%')
-         )
-   """)
+           select p from JPost p
+           where p.isDeleted = false
+             and (p.createdAt is null or p.createdAt >= :since)
+             and p.likeCount >= 3
+             and (:category is null or p.boardCategory = :category)
+             and (
+                  :q is null
+                  or p.title like concat('%', :q, '%')
+                  or concat('', p.content) like concat('%', :q, '%')
+                 )
+           order by p.likeCount desc, p.postId desc
+           """)
     Page<JPost> findPopular(@Param("category") BoardCategory category,
                             @Param("q") String q,
                             @Param("since") LocalDateTime since,
                             Pageable pageable);
 
+    // ✅ 핫핀용(Top N). 서비스에서 threshold=3 사용
+    List<JPost> findTop3ByLikeCountGreaterThanEqualAndIsDeletedFalseOrderByLikeCountDescPostIdDesc(int threshold);
 
-    // ✅ 단건 상세도 user 함께 로딩 (findById 오버라이드 or 별도 메소드)
+    // ✅ 단건 상세 user 조인 (기존처럼 유지)
     @EntityGraph(attributePaths = "user")
     Optional<JPost> findById(Long id);
-
-    // 또는 별도 이름으로
-    // @EntityGraph(attributePaths = "user")
-    // Optional<JPost> findWithUserByPostId(Long id);
 }

@@ -1,5 +1,6 @@
 package code.project.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -7,17 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "`User`") // 예약어 충돌 방지
+@Table(name = "j_user") // 예약어 충돌 방지
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString
+
 public class JUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
     private Long userId;
 
     @Column(nullable = false, length = 50 ,unique = true)
@@ -56,6 +59,12 @@ public class JUser {
     //등급 권한 배열형으로 수정
     //memberRoleList가 실제로 사용될 때 데이터를 로드
     @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "juser_jmember_role_list",
+            joinColumns = @JoinColumn(name = "juser_user_id")
+    )
+    @Column(name = "jmember_role_list", nullable = false)
+    @Enumerated(EnumType.ORDINAL) // ★ 숫자(0=USER, 1=ADMIN)로 저장/검증
     @Builder.Default
     private List<JMemberRole> JMemberRoleList = new ArrayList<>();
 

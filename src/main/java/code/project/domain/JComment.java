@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Comment")
+@Table(name = "j_comment")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder @ToString(exclude = {"post", "user"})

@@ -53,7 +53,6 @@ class JUserRepositoryTest {
 
             // 중복 방지: 이미 존재하면 건너뛰기
             if (jUserRepository.existsByUsername(username)) {
-                log.info("'{}' 이미 존재", username);
                 continue;
             }
             JUser user = JUser.builder()
@@ -68,7 +67,7 @@ class JUserRepositoryTest {
             assertThat(user.getUserId()).isNotNull();
             assertThat(jUserRepository.existsByUsername(username)).isTrue();
         }
-        log.info("일반 사용자 50명 생성 완료");
+
     }
 
     @Test
@@ -188,7 +187,7 @@ class JUserRepositoryTest {
     @Test
     @DisplayName("회원 삭제 테스트")
     void deleteUser() {
-        String username = "lee";
+        String username = "admin";
         JUser user = jUserRepository.getwithRoles(username);
 
         if (user == null) {
