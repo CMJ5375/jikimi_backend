@@ -102,44 +102,38 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, Long> {
     /** 즐겨찾기 — 반경 필터 O (네이티브) */
     @Query(
             value = """
-            SELECT p.*
-            FROM pharmacy p
-            JOIN facility f ON f.facility_id = p.facility_id
-            JOIN user_favorite uf ON uf.pharmacy_id = p.pharmacy_id
-            JOIN `User` u ON u.user_id = uf.user_id
-            WHERE u.username = :username
-              AND (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
-              AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
-              AND (
-                6371 * ACOS(
-                  COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
-                  COS(RADIANS(f.longitude) - RADIANS(:lng)) +
-                  SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
-                )
-              ) <= :radiusKm
-            ORDER BY
-              6371 * ACOS(
-                COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
-                COS(RADIANS(f.longitude) - RADIANS(:lng)) +
-                SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
-              ) ASC
+        SELECT p.*
+        FROM pharmacy p
+        JOIN facility f ON f.facility_id = p.facility_id
+        JOIN j_user_favorite uf ON uf.pharmacy_id = p.pharmacy_id
+        JOIN j_user u ON u.user_id = uf.user_id
+        WHERE u.username = :username
+          AND (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+          AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
+          AND (
+            6371 * ACOS(
+              COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+              COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+              SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+            )
+          ) <= :radiusKm
         """,
             countQuery = """
-            SELECT COUNT(*)
-            FROM pharmacy p
-            JOIN facility f ON f.facility_id = p.facility_id
-            JOIN user_favorite uf ON uf.pharmacy_id = p.pharmacy_id
-            JOIN `User` u ON u.user_id = uf.user_id
-            WHERE u.username = :username
-              AND (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
-              AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
-              AND (
-                6371 * ACOS(
-                  COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
-                  COS(RADIANS(f.longitude) - RADIANS(:lng)) +
-                  SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
-                )
-              ) <= :radiusKm
+        SELECT COUNT(*)
+        FROM pharmacy p
+        JOIN facility f ON f.facility_id = p.facility_id
+        JOIN j_user_favorite uf ON uf.pharmacy_id = p.pharmacy_id
+        JOIN j_user u ON u.user_id = uf.user_id
+        WHERE u.username = :username
+          AND (:keyword IS NULL OR :keyword = '' OR p.pharmacy_name LIKE CONCAT('%', :keyword, '%'))
+          AND :lat IS NOT NULL AND :lng IS NOT NULL AND :radiusKm IS NOT NULL
+          AND (
+            6371 * ACOS(
+              COS(RADIANS(:lat)) * COS(RADIANS(f.latitude)) *
+              COS(RADIANS(f.longitude) - RADIANS(:lng)) +
+              SIN(RADIANS(:lat)) * SIN(RADIANS(f.latitude))
+            )
+          ) <= :radiusKm
         """,
             nativeQuery = true
     )

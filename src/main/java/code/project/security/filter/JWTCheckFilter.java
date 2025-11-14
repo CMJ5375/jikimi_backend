@@ -38,6 +38,7 @@ public class JWTCheckFilter extends OncePerRequestFilter {
                 path.equals("/project/user/login") ||
                 path.equals("/project/user/logout") ||
                 path.equals("/project/user/refresh") ||
+                path.startsWith("/project/user/kakao") ||
                 path.startsWith("/project/hospital/") ||
                 path.startsWith("/project/pharmacy/") ||
                 path.startsWith("/project/facility/") ||

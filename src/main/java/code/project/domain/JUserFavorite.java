@@ -48,8 +48,8 @@ public class JUserFavorite {
 
     // ✅ 예약어 충돌 방지: 백틱으로 정확히 "type" 컬럼에 매핑
     @Enumerated(EnumType.STRING)
-    @Column(name = "`type`", length = 20, nullable = false)
-    private FacilityType type; // HOSPITAL | PHARMACY
+    @Column(name = "favorite_type", length = 20, nullable = false)
+    private FacilityType type;
 
     // ✅ 자동 생성일
     @CreationTimestamp

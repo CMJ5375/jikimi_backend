@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,8 +29,11 @@ public class CustomSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         log.info("..........security config (no formLogin / no httpBasic)");
 
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http.cors(c -> c.configurationSource(corsConfigurationSource()));
         http.csrf(csrf -> csrf.disable());
+
+        // ★ Stateless
+        http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) -> res.sendError(401))
@@ -40,27 +44,28 @@ public class CustomSecurityConfig {
                 // 정적 리소스
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 
-                // 헬스/루트
+                // 기본/헬스체크
                 .requestMatchers(HttpMethod.GET, "/").permitAll()
                 .requestMatchers("/__health", "/project/health", "/actuator/health", "/actuator/health/**").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
 
-                // 공개 엔드포인트
+                // 회원가입/계정 관련
                 .requestMatchers(HttpMethod.POST, "/project/register").permitAll()
                 .requestMatchers("/api/account/**", "/api/password/**").permitAll()
+
+                // 영업시간/시설
                 .requestMatchers("/project/open-hours/**", "/project/facility/*/business-hours").permitAll()
                 .requestMatchers("/project/nmc/**").permitAll()
                 .requestMatchers("/", "/error", "/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
 
-                // Kakao OAuth
-                .requestMatchers(HttpMethod.GET,  "/project/user/kakao").permitAll()
-                .requestMatchers(HttpMethod.POST, "/project/user/kakao/token").permitAll()
+                // 카카오 로그인
+                .requestMatchers("/project/user/kakao").permitAll()
 
-                // 로그인 관련만 공개
+                // JWT 로그인/리프레시
                 .requestMatchers("/project/user/login", "/project/user/logout", "/project/user/refresh").permitAll()
                 .requestMatchers("/project/user/me").authenticated()
 
-                // 공개 조회
+                // 병원/약국/시설 검색
                 .requestMatchers("/project/hospital/**", "/project/pharmacy/**", "/project/facility/**").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/project/facility/*/open").permitAll()
                 .requestMatchers(HttpMethod.POST, "/project/facility/open-batch").permitAll()
@@ -68,34 +73,29 @@ public class CustomSecurityConfig {
                 .requestMatchers("/files/**", "/uploads/**", "/default-profile.png").permitAll()
                 .requestMatchers("/project/map/**").permitAll()
 
-                // ===== 지원/FAQ/자료실 좋아요 예외를 먼저 선언 (순서 중요) =====
-                .requestMatchers(HttpMethod.GET,   "/project/support/**/likes/status").permitAll()     // ★ 상태조회 누구나
-                .requestMatchers(HttpMethod.PATCH, "/project/support/**/likes").authenticated()        // ★ 좋아요 토글은 '로그인'만
-
-                // 지원/FAQ/자료실 - 그 외 쓰기 권한은 ADMIN
+                // ====== 여기 수정됨 (support 좋아요 경로) ======
+                // 기존: "/project/support/**/likes/status", "/project/support/**/likes"
+                // → Spring 6 PathPattern에서 ** 뒤에 추가 segment가 오면 예외 발생
+                .requestMatchers(HttpMethod.GET,   "/project/support/*/likes/status").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/project/support/*/likes").authenticated()
+                // 나머지 support 경로
                 .requestMatchers(HttpMethod.GET,    "/project/support/**").permitAll()
                 .requestMatchers(HttpMethod.POST,   "/project/support/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,    "/project/support/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PATCH,  "/project/support/**").hasRole("ADMIN")            // 위 likes 예외가 먼저 매칭됨
+                .requestMatchers(HttpMethod.PATCH,  "/project/support/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/project/support/**").hasRole("ADMIN")
+                // ==============================
 
-                // Preflight
+                // CORS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // 게시판
-                .requestMatchers(HttpMethod.GET,
-                        "/api/posts/list",
-                        "/api/posts/hot/pins",
-                        "/api/posts/*/likes/status",
-                        "/api/posts/*/views"  // 조회수 증가 공개 유지 시
-                ).permitAll()
-                .requestMatchers(HttpMethod.PATCH, "/api/posts/*/views").permitAll()
-                .requestMatchers(HttpMethod.POST,   "/api/posts/add").authenticated()
-                .requestMatchers(HttpMethod.PUT,    "/api/posts/*").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/posts/*").authenticated()
-                .requestMatchers(HttpMethod.PATCH,  "/api/posts/*/likes").authenticated()
+                // ★ 게시판 공개/보호 명시
+                .requestMatchers("/api/posts/**").authenticated()
 
-                // 기타
+                // ★ 즐겨찾기 보호 명시
+                .requestMatchers(HttpMethod.GET, "/project/favorite/my").authenticated()
+
+                // 나머지는 전부 인증 필요
                 .anyRequest().authenticated()
         );
 

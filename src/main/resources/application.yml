@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   #create update validate
+      ddl-auto: validate    #create update validate
     show-sql: false
     properties:
       hibernate:
@@ -80,13 +80,14 @@ logging:
 kakao:
   api:
     key: 7bf162dd278aa7eddaf1d6aa4c0257ec
+  redirect-uri: "https://d3s30j0qk5vpe1.cloudfront.net/user/kakao"
 app:
-  hira:
+  hira: # 병원
     base-url: "https://apis.data.go.kr/B552657/HsptlAsembySearchService"
     service-key: "21c5bf0edb51753e536ae49afbab80f43080efdc3ff413e5466e6c6f3a6f1a15"
     timeout-sec: 5
 
-  pharm:
+  pharm: #약국
     base-url: "https://safemap.go.kr/openApiService/data"
     list-path: "/getPharmacyData.do"
     service-key: "U418797P-U418-U418-U418-U418797PVF"
