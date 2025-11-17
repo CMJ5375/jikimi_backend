@@ -118,10 +118,7 @@ public class CustomSecurityConfig {
         cfg.setAllowedOrigins(java.util.List.of(
                 "http://localhost:3000",
                 "https://localhost:3000",
-                "https://jikimi.duckdns.org",
-                "http://apiserver-env.eba-wqmpyrjp.ap-northeast-2.elasticbeanstalk.com",
-                "https://apiserver-env.eba-wqmpyrjp.ap-northeast-2.elasticbeanstalk.com",
-                "https://d3s30j0qk5vpe1.cloudfront.net"
+                "https://본인 배포 URL.net"
         ));
         cfg.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type", "Cache-Control", "X-Requested-With"));
