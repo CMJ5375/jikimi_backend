@@ -1,11 +1,14 @@
 spring:
   application:
     name: api
+
   datasource:
-    url: jdbc:mysql://awseb-e-uqimne4s4m-stack-awsebrdsdatabase-ks8f5jijkemu.cb2q8cq42e2k.ap-northeast-2.rds.amazonaws.com:3306/testdb
-    username: ebroot
-    password: 12345678
+    # ✅ RDS/MySQL 접속 정보 (실 서버용은 절대 깃헙에 비밀번호 올리지 말 것)
+    url: jdbc:mysql://YOUR-RDS-ENDPOINT:3306/YOUR_DB_NAME   # 예: awseb-xxxx.rds.amazonaws.com:3306/testdb
+    username: YOUR_DB_USERNAME                              # 예: ebroot
+    password: YOUR_DB_PASSWORD                              # 예: 실제 비밀번호 (깃헙에는 쓰지 말기)
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   servlet:
     multipart:
       max-file-size: 10MB
@@ -13,45 +16,50 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate    #create update validate
+      ddl-auto: validate    # create / update / validate 등 환경에 맞게 변경
     show-sql: false
     properties:
       hibernate:
         format_sql: true
+
   mail:
+    # ✅ 메일 발송용 SMTP 계정 (Gmail 기준)
     host: smtp.gmail.com
     port: 587
-    username: dodojun0913@gmail.com
-    password: nfnr fddd uzwi ydwm
+    username: YOUR_GMAIL_ADDRESS            # 예: dodojun0913@gmail.com
+    password: YOUR_APP_PASSWORD             # 예: 앱 비밀번호 (깃헙에는 절대 올리지 말 것)
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
   cloud:
     aws:
       s3:
-        bucket: elasticbeanstalk-ap-northeast-2-620812304102
+        bucket: YOUR_S3_BUCKET_NAME         # 예: elasticbeanstalk-ap-northeast-2-xxxxxxxxxxxx
       region:
         static: ap-northeast-2
       stack:
         auto: false
+
 server:
   port: 5000
   error:
     include-message: always          # 기본 에러 바디에 message 포함
     include-binding-errors: always
     include-stacktrace: never
+
+# 리버스 프록시(ELB/ALB) 뒤에 있을 때 원본 IP/스킴 처리
 server.forward-headers-strategy: framework
 
 file:
   upload:
-    # 로컬(Windows/Mac) 기본 저장 경로: 사용자 홈 밑에 생성
+    # ✅ 로컬(Windows/Mac) 기본 저장 경로: 사용자 홈 밑에 생성
     support-dir: "${user.home}/jikimi_uploads/support"
     # 정적 노출 URL prefix (WebConfig에서 사용)
     public-url-prefix: "/files/"
-
 
 logging:
   level:
@@ -73,22 +81,34 @@ logging:
     org.springframework.web.HttpLogging: WARN
     reactor.netty: WARN
 
-    # 당신의 앱 패키지 (DEBUG로 변경하여 서비스/컨트롤러 로직 확인)
-    code.project: DEBUG # 앱 내부 패키지 상세 로그 ON
-#logging.level: org.hibernate.SQL: debug org.hibernate.orm.jdbc.bind: trace org.springframework.security.web: trace org.springframework.web: debug org.springframework.http.converter: trace 지금은 디버그 쪽 없애서 만약 콘솔로그 좀 자세히 보고싶으면 여기 주석해제해서 위에꺼랑 바꿔치기 하면됩니다.
+    # 당신의 앱 패키지 (서비스/컨트롤러 로직 확인용)
+    code.project: DEBUG
+
+# 아래 주석은 "로그 더 보고 싶을 때" 교체용 설명으로만 남겨두면 됨
+#logging.level:
+#  org.hibernate.SQL: debug
+#  org.hibernate.orm.jdbc.bind: trace
+#  org.springframework.security.web: trace
+#  org.springframework.web: debug
+#  org.springframework.http.converter: trace
+#  # 콘솔 로그를 자세히 보고 싶으면 위 설정을 위쪽 logging.level과 바꿔치기 하면 됩니다.
 
 kakao:
   api:
-    key: 7bf162dd278aa7eddaf1d6aa4c0257ec
-  redirect-uri: "https://d3s30j0qk5vpe1.cloudfront.net/user/kakao"
+    # ✅ 카카오 REST API Key (깃헙에는 실제 키 넣지 말고 예시/플레이스홀더만)
+    key: YOUR_KAKAO_REST_API_KEY          # 예: 7bf1... 처럼 생긴 값
+  # 배포 환경의 실제 리다이렉트 URI (원하면 예시로 놔둬도 됨)
+  redirect-uri: "https://YOUR-CLOUDFRONT-DOMAIN/user/kakao"
+  # 예: "https://d3s30j0qk5vpe1.cloudfront.net/user/kakao"
+
 app:
-  hira: # 병원
+  hira: # 병원 오픈 API
     base-url: "https://apis.data.go.kr/B552657/HsptlAsembySearchService"
-    service-key: "21c5bf0edb51753e536ae49afbab80f43080efdc3ff413e5466e6c6f3a6f1a15"
+    service-key: "YOUR_HIRA_SERVICE_KEY"     # ✅ 공공데이터포털 서비스 키 (실제 값은 숨길 것)
     timeout-sec: 5
 
-  pharm: #약국
+  pharm: # 약국 오픈 API
     base-url: "https://safemap.go.kr/openApiService/data"
     list-path: "/getPharmacyData.do"
-    service-key: "U418797P-U418-U418-U418-U418797PVF"
+    service-key: "YOUR_PHARM_SERVICE_KEY"    # ✅ 약국 API 서비스 키
     timeout-sec: 5
